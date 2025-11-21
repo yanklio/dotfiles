@@ -1,0 +1,12 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhistcnt =3
+let g:netrw_dirhist_3='/home/yarlaw/.vim'
+let g:netrw_dirhist_2='/home/yarlaw/Code/Lang&Fram/Golang/cabot/pkg/telegram'
+let g:netrw_dirhist_1='/home/yarlaw/Code/Lang&Fram/Golang/cabot/pkg'
+let g:netrw_dirhist_0='/home/yarlaw/Code/Lang&Fram/Golang/cabot'
+let g:netrw_dirhist_9='/home/yarlaw/Code/Lang&Fram/Golang'
+let g:netrw_dirhist_8='/home/yarlaw/Code/Lang&Fram'
+let g:netrw_dirhist_7='/home/yarlaw/Code'
+let g:netrw_dirhist_6='/home/yarlaw'
+let g:netrw_dirhist_5='/home/yarlaw/Code'
+let g:netrw_dirhist_4='/home/yarlaw/.zsh'

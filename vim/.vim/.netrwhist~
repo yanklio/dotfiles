@@ -1,0 +1,8 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhistcnt =6
+let g:netrw_dirhist_6='/home/yarlaw'
+let g:netrw_dirhist_5='/home/yarlaw/Code'
+let g:netrw_dirhist_4='/home/yarlaw/.zsh'
+let g:netrw_dirhist_3='/home/yarlaw/.config/wofi'
+let g:netrw_dirhist_2='/home/yarlaw/.config/kitty'
+let g:netrw_dirhist_1='/home/yarlaw/.config/waybar'
