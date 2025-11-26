@@ -1,0 +1,4 @@
+.netrwhist
+.netrwhist~
+autoload/plug.vim
+plugged/
