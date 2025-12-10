@@ -7,6 +7,17 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "context_servers": {
+    "Astro docs": {
+      "enabled": true,
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mcp.docs.astro.build/mcp"
+      ]
+    }
+  },
   "project_panel": {
     "auto_open": { "on_paste": false },
     "hide_hidden": false,
@@ -35,7 +46,7 @@
     "default_profile": "write",
     "default_model": {
       "provider": "copilot_chat",
-      "model": "claude-sonnet-4.5"
+      "model": "claude-sonnet-4"
     },
     "always_allow_tool_actions": true,
     "model_parameters": []
@@ -87,7 +98,7 @@
     // wakatime
     "wakatime": {
       "initialization_options": {
-        "api-key": "${WAKATIME_API_KEY}"
+        "api-key": "$WAKATIME_API_KEY"
       }
     },
 

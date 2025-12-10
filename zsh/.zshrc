@@ -123,3 +123,7 @@ unset __conda_setup
 # Cosmic DE: Disable IBus input method modules to fix issues
 unset QT_IM_MODULE
 unset GTK_IM_MODULE
+. "/home/yarlaw/.deno/env"
+
+# Load secrets (API keys, tokens, etc.)
+[ -f "$HOME/.zsh_secrets" ] && source "$HOME/.zsh_secrets"
