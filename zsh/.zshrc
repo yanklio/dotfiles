@@ -49,7 +49,7 @@ precmd () { print -Pn "\e]2;%-3~\a"; }
 
 # Show logo on startup (only for top-level shells)
 if [[ $SHLVL -le 1 ]]; then
-  fastfetch --logo small
+  fastfetch -c ~/.fastfetch-config.jsonc
 fi
 
 # Oh My Zsh
@@ -115,6 +115,9 @@ fi
 unset __conda_setup
 # <<< conda initialize <<< 
 
+# Deno
+. "/home/yarlaw/.deno/env"
+
 
 # =================================
 # System-Specific Configuration
@@ -123,7 +126,6 @@ unset __conda_setup
 # Cosmic DE: Disable IBus input method modules to fix issues
 unset QT_IM_MODULE
 unset GTK_IM_MODULE
-. "/home/yarlaw/.deno/env"
 
 # Load secrets (API keys, tokens, etc.)
 [ -f "$HOME/.zsh_secrets" ] && source "$HOME/.zsh_secrets"

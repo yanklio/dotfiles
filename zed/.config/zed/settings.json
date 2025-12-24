@@ -7,15 +7,12 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "ui_font_weight": 400.0,
   "context_servers": {
     "Astro docs": {
       "enabled": true,
       "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://mcp.docs.astro.build/mcp"
-      ]
+      "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
     }
   },
   "project_panel": {
@@ -43,18 +40,18 @@
   // ai
   "agent": {
     "message_editor_min_lines": 6,
-    "default_profile": "write",
+    "default_profile": "ask",
     "default_model": {
       "provider": "copilot_chat",
-      "model": "claude-sonnet-4"
+      "model": "claude-sonnet-4.5"
     },
     "always_allow_tool_actions": true,
     "model_parameters": []
   },
 
   // ui
-  "ui_font_size": 15,
-  "ui_font_family": "Noto Sans Mono",
+  "ui_font_size": 15.0,
+  "ui_font_family": "Noto Sans",
   "buffer_font_size": 15,
   "buffer_font_family": "JetBrains Mono",
   "theme": {
