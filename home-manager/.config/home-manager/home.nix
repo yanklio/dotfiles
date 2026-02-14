@@ -24,6 +24,7 @@ in
      ./modules/vim.nix
      ./modules/neovim.nix
      ./modules/tmux.nix
+     ./modules/zed.nix
   ];
 
   home.packages = with pkgs; [
@@ -49,6 +50,8 @@ in
 
     # Fonts
     nerd-fonts.jetbrains-mono
+    noto-fonts
+    jetbrains-mono
   ];
 
   home.file = {
