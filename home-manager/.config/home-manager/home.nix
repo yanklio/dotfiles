@@ -44,8 +44,14 @@ in
     curl
     stow
 
+    # Virtualization
+    podman 
+
     # Programming tools
     nodejs
+
+    # AI Tools
+    ollama 
     opencode
 
     # Fonts
@@ -65,6 +71,17 @@ in
          email = "y.ustinov2004@gmail.com";
      };
   };
+
+
+  services = { 
+      ollama = {
+        enable = true;
+      };
+      podman = {
+        enable = true;
+      };
+  };
+
 
   home.sessionVariables = {
     EDITOR = "vim";
