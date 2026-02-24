@@ -12,26 +12,26 @@
       save = 100000;
       path = "$HOME/.history";
       ignoreDups = true;
-      share = true; 
+      share = true;
     };
 
     shellAliases = {
       v = "nvim";
       o = "xdg-open";
       g = "git";
-      ls = "ls --color=auto -hv";
+      ls = "eza";
       grep = "grep --color=auto";
       diff = "diff --color=auto";
       ip = "ip -c=auto";
       l = "ls";
-      ll = "ls -l";
-      la = "ls -lA";
+      ll = "eza -l";
+      la = "eza -lA";
       mv = "mv -i";
     };
 
     oh-my-zsh = {
       enable = true;
-      plugins = [ "git" ]; 
+      plugins = [ "git" ];
       theme = "simple";
     };
 
@@ -39,9 +39,10 @@
       # Key Bindings (Vim + Search)
       bindkey "\e[A" history-beginning-search-backward
       bindkey "\e[B" history-beginning-search-forward
-      
+
       # Enable Vim mode
       bindkey -v
+
 
       # Terminal Appearance: Set title to current path
       precmd () { print -Pn "\e]2;%-3~\a"; }
@@ -56,4 +57,3 @@
     '';
   };
 }
-  

@@ -4,7 +4,7 @@ let
   # Define the custom shell script here
   opencode = pkgs.writeShellApplication {
     name = "opencode";
-    
+
     # This ensures nodejs is in the path when the script runs
     runtimeInputs = [ pkgs.nodejs ];
 
@@ -16,7 +16,7 @@ in
 {
   home.username = "yanklio";
   home.homeDirectory = "/home/yanklio";
-  home.stateVersion = "25.11"; 
+  home.stateVersion = "25.11";
 
   imports = [
      ./modules/zsh.nix
@@ -30,14 +30,15 @@ in
   home.packages = with pkgs; [
     # Shell
     zsh
-  
-    # Terminal utils
-    tmux
 
     # Basic utils
     git
+    tmux
 
     # Handy tools
+    zoxide
+    bat
+    eza
     fastfetch
     htop
     fzf
@@ -45,13 +46,21 @@ in
     stow
 
     # Virtualization
-    podman 
+    podman
+
+    # TUIs
+    lazygit
+    lazydocker
 
     # Programming tools
     nodejs
+    jdk17_headless
+    go
+    conda
+
 
     # AI Tools
-    ollama 
+    ollama
     opencode
 
     # Fonts
@@ -66,14 +75,20 @@ in
   # Git config
   programs.git = {
      enable = true;
-     settings.user = {     
+     settings.user = {
          name = "Yaroslav Ustinov";
          email = "y.ustinov2004@gmail.com";
      };
   };
 
+  programs.zoxide = {
+      enable = true;
+      enableZshIntegration = true;
+      options = [ "--cmd cd" ];
+  };
 
-  services = { 
+
+  services = {
       ollama = {
         enable = true;
       };
