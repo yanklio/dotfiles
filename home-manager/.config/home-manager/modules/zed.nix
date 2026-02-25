@@ -1,5 +1,37 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
+let
+  zedWakatimeScript = pkgs.writeText "zed-wakatime-api-key.py" ''
+    import json
+    import os
+
+    settings_file = os.environ["SETTINGS_FILE"]
+    secret_path = os.environ["SECRET_PATH"]
+    xdg_runtime = os.environ.get("XDG_RUNTIME_DIR", "")
+    secret_path = secret_path.replace("''${XDG_RUNTIME_DIR}", xdg_runtime)
+
+    if not (os.path.isfile(secret_path) and os.path.isfile(settings_file)):
+        raise SystemExit(0)
+
+    with open(secret_path, "r", encoding="utf-8") as fh:
+        api_key = fh.read().rstrip("\n")
+
+    try:
+        with open(settings_file, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except Exception:
+        data = {}
+
+    lsp = data.setdefault("lsp", {})
+    wakatime = lsp.setdefault("wakatime", {})
+    init_opts = wakatime.setdefault("initialization_options", {})
+    init_opts["api-key"] = api_key
+
+    with open(settings_file, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, indent=2, sort_keys=False)
+        fh.write("\n")
+  '';
+in
 {
   programs.zed-editor = {
     enable = true;
@@ -81,7 +113,7 @@
       lsp = {
         wakatime = {
           initialization_options = {
-            api-key = "$WAKATIME_API_KEY"; 
+            api-key = "";
           };
         };
         ruff = {
@@ -105,4 +137,10 @@
       };
     };
   };
+
+  home.activation.zedWakatimeApiKey = lib.hm.dag.entryAfter [ "zedSettingsActivation" ] ''
+    SETTINGS_FILE="${config.xdg.configHome}/zed/settings.json" \
+      SECRET_PATH="${config.age.secrets.wakatime_api.path}" \
+      ${pkgs.python3}/bin/python "${zedWakatimeScript}"
+  '';
 }

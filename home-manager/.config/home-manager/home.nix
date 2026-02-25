@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, inputs,  ... }:
 
 let
   # Define the custom shell script here
@@ -28,22 +28,26 @@ in
   ];
 
   home.packages = with pkgs; [
+    inputs.agenix.packages.${pkgs.system}.agenix
     # Shell
     zsh
 
     # Basic utils
     git
     tmux
+    htop
+    curl
+    stow
+    fastfetch
 
     # Handy tools
     zoxide
     bat
     eza
-    fastfetch
-    htop
     fzf
-    curl
-    stow
+
+    # Relax
+    cava
 
     # Virtualization
     podman
@@ -51,13 +55,13 @@ in
     # TUIs
     lazygit
     lazydocker
+    pgcli
 
     # Programming tools
     nodejs
     jdk17_headless
     go
     conda
-
 
     # AI Tools
     ollama
@@ -68,9 +72,6 @@ in
     noto-fonts
     jetbrains-mono
   ];
-
-  home.file = {
-  };
 
   # Git config
   programs.git = {
