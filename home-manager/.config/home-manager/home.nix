@@ -45,6 +45,8 @@
     go
     conda
     gcc
+    nixd
+    nil
 
     # AI Tools
     opencode
