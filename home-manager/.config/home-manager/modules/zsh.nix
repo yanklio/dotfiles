@@ -12,43 +12,42 @@
       save = 100000;
       path = "$HOME/.history";
       ignoreDups = true;
-      share = true; 
+      share = true;
     };
 
     shellAliases = {
       v = "nvim";
       o = "xdg-open";
       g = "git";
-      ls = "ls --color=auto -hv";
+      ls = "eza";
       grep = "grep --color=auto";
       diff = "diff --color=auto";
       ip = "ip -c=auto";
       l = "ls";
-      ll = "ls -l";
-      la = "ls -lA";
+      ll = "eza -l";
+      la = "eza -lA";
       mv = "mv -i";
     };
 
     oh-my-zsh = {
       enable = true;
-      plugins = [ "git" ]; 
+      plugins = [ "git" ];
       theme = "simple";
     };
 
     initContent = ''
-      # Key Bindings (Vim + Search)
+      # Enable Vim mode first, then re-apply custom bindings on top
+      bindkey -v
       bindkey "\e[A" history-beginning-search-backward
       bindkey "\e[B" history-beginning-search-forward
-      
-      # Enable Vim mode
-      bindkey -v
 
       # Terminal Appearance: Set title to current path
-      precmd () { print -Pn "\e]2;%-3~\a"; }
+      _set_terminal_title() { print -Pn "\e]2;%-3~\a" }
+      precmd_functions+=(_set_terminal_title)
 
       # Show logo on startup (only for top-level shells)
       if [[ $SHLVL -le 1 ]]; then
-        fastfetch -c ~/.fastfetch-config.jsonc
+        fastfetch
       fi
 
       # Add local bin to path
@@ -56,4 +55,3 @@
     '';
   };
 }
-  
