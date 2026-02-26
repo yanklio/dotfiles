@@ -27,7 +27,7 @@
       vim.opt.background = 'dark'
       require('gruvbox').setup({
         contrast = 'hard',
-        transparent_mode = false,
+        transparent_mode = true,
       })
       vim.cmd('colorscheme gruvbox')
 
@@ -139,6 +139,7 @@
       require('lualine').setup({
         options = {
           theme = 'gruvbox',
+          transparent = true,
         },
       })
 
