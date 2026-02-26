@@ -3,7 +3,7 @@
 {
   home.packages = [ pkgs.fastfetch ];
 
-  home.file.".fastfetch-config.jsonc".text = builtins.toJSON {
+  xdg.configFile."fastfetch/config.jsonc".text = builtins.toJSON {
     logo = {
       type = "small";
     };

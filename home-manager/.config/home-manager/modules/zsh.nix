@@ -47,7 +47,7 @@
 
       # Show logo on startup (only for top-level shells)
       if [[ $SHLVL -le 1 ]]; then
-        fastfetch -c ~/.fastfetch-config.jsonc
+        fastfetch
       fi
 
       # Add local bin to path
