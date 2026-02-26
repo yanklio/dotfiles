@@ -1,18 +1,5 @@
 { config, pkgs, inputs,  ... }:
 
-let
-  # Define the custom shell script here
-  opencode = pkgs.writeShellApplication {
-    name = "opencode";
-
-    # This ensures nodejs is in the path when the script runs
-    runtimeInputs = [ pkgs.nodejs ];
-
-    text = ''
-      exec npx opencode-ai@latest "$@"
-    '';
-  };
-in
 {
   home.username = "yanklio";
   home.homeDirectory = "/home/yanklio";
