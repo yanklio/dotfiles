@@ -33,7 +33,7 @@
           agenix.homeManagerModules.default
           {
             age.secrets.wakatime_api = {
-              file = "/home/yanklio/.config/agenix/wakatime_api.age";
+              file = ./secrets/wakatime_api.age;
             };
             age.identityPaths = [ "/home/yanklio/.ssh/id_ed25519" ];
           }
