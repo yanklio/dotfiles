@@ -33,9 +33,9 @@
           agenix.homeManagerModules.default
           {
             age.secrets.wakatime_api = {
-              file = /home/yanklio/.config/agenix/wakatime_api.age;
+              file = "/home/yanklio/.config/agenix/wakatime_api.age";
             };
-            age.identityPaths = [ /home/yanklio/.ssh/id_ed25519 ];
+            age.identityPaths = [ "/home/yanklio/.ssh/id_ed25519" ];
           }
           # Load the main home configuration
           ./home.nix

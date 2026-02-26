@@ -1,9 +1,9 @@
-{ config, lib, pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   programs.neovim = {
     enable = true;
-    
+
     initLua = ''
       -- Base options
       vim.opt.expandtab = true
@@ -31,10 +31,14 @@
       })
       vim.cmd('colorscheme gruvbox')
 
-      -- Treesitter
-      require('nvim-treesitter.config').setup({
-        highlight = { enable = true },
-        indent = { enable = true },
+      -- Treesitter (nvim-treesitter 0.10+ — highlight/indent are native nvim features now)
+      vim.api.nvim_create_autocmd('FileType', {
+        callback = function()
+          local ok = pcall(vim.treesitter.start)
+          if not ok then
+            vim.bo.syntax = 'on'
+          end
+        end,
       })
 
       -- Telescope
@@ -62,22 +66,14 @@
       vim.keymap.set('n', '<leader>fb', '<cmd>Telescope buffers<cr>')
       vim.keymap.set('n', '<leader>fh', '<cmd>Telescope help_tags<cr>')
 
-      -- Mason
-      require('mason').setup()
-      require('mason-lspconfig').setup({
-        ensure_installed = { 'lua_ls', 'ts_ls', 'html', 'cssls' },
-      })
-
-      -- LSP (nvim 0.11+ native API)
+      -- LSP (nvim 0.11+ native API, servers provided by Nix)
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
-      
-      -- Configure LSP servers using vim.lsp.config
+
       vim.lsp.config('lua_ls', { capabilities = capabilities })
       vim.lsp.config('ts_ls', { capabilities = capabilities })
       vim.lsp.config('html', { capabilities = capabilities })
       vim.lsp.config('cssls', { capabilities = capabilities })
-      
-      -- Enable servers
+
       vim.lsp.enable({ 'lua_ls', 'ts_ls', 'html', 'cssls' })
 
       -- LSP keymaps
@@ -171,10 +167,10 @@
         suggestion = {
           auto_trigger = true,
           keymap = {
-            accept = '<C-l>',
-            next = '<C-n>',
-            prev = '<C-p>',
-            dismiss = '<C-d>',
+            accept  = '<M-l>',
+            next    = '<M-]>',
+            prev    = '<M-[>',
+            dismiss = '<M-e>',
           },
         },
       })
@@ -195,8 +191,8 @@
         dapui.close()
       end
 
-      vim.keymap.set('n', '<F5>', dap.continue)
-      vim.keymap.set('n', '<F9>', dap.toggle_breakpoint)
+      vim.keymap.set('n', '<F5>',  dap.continue)
+      vim.keymap.set('n', '<F9>',  dap.toggle_breakpoint)
       vim.keymap.set('n', '<F10>', dap.step_over)
       vim.keymap.set('n', '<F11>', dap.step_into)
 
@@ -210,23 +206,30 @@
           null_ls.builtins.formatting.isort,
         },
       })
-      vim.keymap.set('n', '<leader>f', vim.lsp.buf.format)
+      vim.keymap.set('n', '<leader>cf', vim.lsp.buf.format)
 
       -- Which-key
       require('which-key').setup()
     '';
 
     extraPackages = with pkgs; [
-        nodePackages.vscode-langservers-extracted
-        nodePackages.typescript-language-server
-        lua-language-server
+      # LSP servers (Nix-managed, no Mason downloads)
+      nodePackages.vscode-langservers-extracted  # html, cssls
+      nodePackages.typescript-language-server    # ts_ls
+      lua-language-server                        # lua_ls
+
+      # Formatters
+      stylua
+      prettierd
+      black
+      isort
     ];
 
     plugins = with pkgs.vimPlugins; [
       # Theme
       gruvbox-nvim
 
-      # Treesitter - using withPlugins for specific grammars to avoid conflicts
+      # Treesitter
       (nvim-treesitter.withPlugins (p: with p; [
         bash
         c
@@ -249,14 +252,13 @@
       telescope-ui-select-nvim
       plenary-nvim
 
-      # LSP and Mason
+      # LSP
       nvim-lspconfig
-      mason-nvim
-      mason-lspconfig-nvim
 
       # Completions
       nvim-cmp
       cmp-nvim-lsp
+      cmp-buffer
       luasnip
       cmp_luasnip
       friendly-snippets
@@ -283,26 +285,17 @@
 
       # Formatting/Linting
       none-ls-nvim
-      # TO-DO: none-ls-extras-neovim
 
       # Utils
       which-key-nvim
     ];
   };
 
-  # Additional packages for LSP/formatters
   home.packages = with pkgs; [
-    # LSP servers
-    lua-language-server
-    typescript-language-server
-    # html-language-server
-    
-    # Formatters
+    # Formatters available globally (also in extraPackages for nvim)
     stylua
     prettierd
     black
     isort
-    rubocop
-    eslint_d
   ];
 }
