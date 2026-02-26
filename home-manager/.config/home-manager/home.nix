@@ -27,6 +27,9 @@
     bat
     eza
     fzf
+    ripgrep
+    fd
+    btop
 
     # Relax
     cava
@@ -41,6 +44,7 @@
     jdk17_headless
     go
     conda
+    gcc
 
     # AI Tools
     opencode

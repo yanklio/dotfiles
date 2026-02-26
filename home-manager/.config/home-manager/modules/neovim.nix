@@ -218,6 +218,9 @@
       nodePackages.vscode-langservers-extracted  # html, cssls
       nodePackages.typescript-language-server    # ts_ls
       lua-language-server                        # lua_ls
+      gopls
+      pyright
+      nixd
 
       # Formatters
       stylua
