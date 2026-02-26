@@ -35,7 +35,7 @@ in
 {
   programs.zed-editor = {
     enable = true;
-    package = null;
+    package = pkgs.zed-editor;
     
     extensions = [
       "nix"
