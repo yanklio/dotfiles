@@ -46,7 +46,7 @@
     opencode
 
     # Fonts
-    nerd-fonts.jetbrains-mono
+    nerd-fonts.blex-mono
     noto-fonts
   ];
 

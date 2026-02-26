@@ -36,7 +36,7 @@ in
   programs.zed-editor = {
     enable = true;
     package = null;
-    
+
     extensions = [
       "nix"
       "python"
@@ -46,11 +46,12 @@ in
     ];
 
     userSettings = {
-      ui_font_weight = 400;
+      ui_font_weight = 500;
       ui_font_size = 15;
-      ui_font_family = "Noto Sans";
+      ui_font_family = "Blex Nerd Font";
       buffer_font_size = 15;
-      buffer_font_family = "JetBrains Mono";
+      buffer_font_family = "Blex Nerd Font Mono";
+      buffer_font_weight = 500;
       vim_mode = true;
       prettier = {
         allowed = true;
