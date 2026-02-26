@@ -29,28 +29,20 @@ in
 
   home.packages = with pkgs; [
     inputs.agenix.packages.${pkgs.system}.agenix
-    # Shell
-    zsh
 
     # Basic utils
-    git
-    tmux
     htop
     curl
     stow
     fastfetch
 
     # Handy tools
-    zoxide
     bat
     eza
     fzf
 
     # Relax
     cava
-
-    # Virtualization
-    podman
 
     # TUIs
     lazygit
@@ -64,13 +56,11 @@ in
     conda
 
     # AI Tools
-    ollama
     opencode
 
     # Fonts
     nerd-fonts.jetbrains-mono
     noto-fonts
-    jetbrains-mono
   ];
 
   # Git config
@@ -100,7 +90,7 @@ in
 
 
   home.sessionVariables = {
-    EDITOR = "vim";
+    EDITOR = "nvim";
   };
 
   fonts.fontconfig.enable = true;

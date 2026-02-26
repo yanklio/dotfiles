@@ -36,16 +36,14 @@
     };
 
     initContent = ''
-      # Key Bindings (Vim + Search)
+      # Enable Vim mode first, then re-apply custom bindings on top
+      bindkey -v
       bindkey "\e[A" history-beginning-search-backward
       bindkey "\e[B" history-beginning-search-forward
 
-      # Enable Vim mode
-      bindkey -v
-
-
       # Terminal Appearance: Set title to current path
-      precmd () { print -Pn "\e]2;%-3~\a"; }
+      _set_terminal_title() { print -Pn "\e]2;%-3~\a" }
+      precmd_functions+=(_set_terminal_title)
 
       # Show logo on startup (only for top-level shells)
       if [[ $SHLVL -le 1 ]]; then
