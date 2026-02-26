@@ -25,6 +25,7 @@ in
      ./modules/neovim.nix
      ./modules/tmux.nix
      ./modules/zed.nix
+     ./modules/fastfetch.nix
   ];
 
   home.packages = with pkgs; [
@@ -34,7 +35,6 @@ in
     htop
     curl
     stow
-    fastfetch
 
     # Handy tools
     bat
