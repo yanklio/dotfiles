@@ -372,7 +372,7 @@ func fileExists(p string) bool {
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 func main() {
-	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
+	p := tea.NewProgram(initialModel())
 
 	finalModel, err := p.Run()
 	if err != nil {
