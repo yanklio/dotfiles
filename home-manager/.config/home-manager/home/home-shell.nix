@@ -1,4 +1,4 @@
-{ config, pkgs, inputs,  ... }:
+{ config, pkgs, inputs, ... }:
 
 {
   home.username = "yanklio";
@@ -6,13 +6,11 @@
   home.stateVersion = "25.11";
 
   imports = [
-     ./modules/zsh.nix
-     ./modules/alacritty.nix
-     ./modules/vim.nix
-     ./modules/neovim.nix
-     ./modules/tmux.nix
-     ./modules/zed.nix
-     ./modules/fastfetch.nix
+    ../modules/zsh.nix
+    ../modules/vim.nix
+    ../modules/neovim.nix
+    ../modules/tmux.nix
+    ../modules/fastfetch.nix
   ];
 
   home.packages = with pkgs; [
@@ -58,29 +56,27 @@
 
   # Git config
   programs.git = {
-     enable = true;
-     settings.user = {
-         name = "Yaroslav Ustinov";
-         email = "y.ustinov2004@gmail.com";
-     };
+    enable = true;
+    settings.user = {
+      name = "Yaroslav Ustinov";
+      email = "y.ustinov2004@gmail.com";
+    };
   };
 
   programs.zoxide = {
-      enable = true;
-      enableZshIntegration = true;
-      options = [ "--cmd cd" ];
+    enable = true;
+    enableZshIntegration = true;
+    options = [ "--cmd cd" ];
   };
-
 
   services = {
-      ollama = {
-        enable = true;
-      };
-      podman = {
-        enable = true;
-      };
+    ollama = {
+      enable = true;
+    };
+    podman = {
+      enable = true;
+    };
   };
-
 
   home.sessionVariables = {
     EDITOR = "nvim";

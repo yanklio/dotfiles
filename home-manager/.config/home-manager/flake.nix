@@ -23,23 +23,32 @@
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+
+      # Shared agenix module used by both profiles
+      agenixModule = [
+        agenix.homeManagerModules.default
+        {
+          age.secrets.wakatime_api = {
+            file = ./secrets/wakatime_api.age;
+          };
+          age.identityPaths = [ "/home/yanklio/.ssh/id_ed25519" ];
+        }
+      ];
     in
     {
-      homeConfigurations."yanklio" = home-manager.lib.homeManagerConfiguration {
+      # Shell-only profile: terminal tools, no GUI apps
+      # Usage: home-manager switch --flake .#yanklio-shell
+      homeConfigurations."yanklio-shell" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
+        modules = agenixModule ++ [ ./home/home-shell.nix ];
+        extraSpecialArgs = { inherit inputs; };
+      };
 
-        modules = [
-          # Agenix module setup
-          agenix.homeManagerModules.default
-          {
-            age.secrets.wakatime_api = {
-              file = ./secrets/wakatime_api.age;
-            };
-            age.identityPaths = [ "/home/yanklio/.ssh/id_ed25519" ];
-          }
-          # Load the main home configuration
-          ./home.nix
-        ];
+      # Desktop profile: shell + GUI apps (alacritty, zed), composed at flake level
+      # Usage: home-manager switch --flake .#yanklio-desktop
+      homeConfigurations."yanklio-desktop" = home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
+        modules = agenixModule ++ [ ./home/home-shell.nix ./home/home-desktop.nix ];
         extraSpecialArgs = { inherit inputs; };
       };
     };
