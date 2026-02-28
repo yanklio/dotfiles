@@ -62,13 +62,14 @@ type doneMsg struct{ err error }
 // ── Model ─────────────────────────────────────────────────────────────────────
 
 type model struct {
-	stage    stage
-	cursor   int
-	chosen   nixConfig
-	spinner  spinner.Model
-	steps    []string
-	finalErr error
-	ch       <-chan tea.Msg
+	stage        stage
+	cursor       int
+	chosen       nixConfig
+	spinner      spinner.Model
+	steps        []string
+	finalErr     error
+	ch           <-chan tea.Msg
+	applyStarted bool
 }
 
 func initialModel() model {
@@ -133,9 +134,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.steps = append(m.steps, msg.text)
 			return m, tea.Batch(m.spinner.Tick, drainCh(m.ch))
 		case doneMsg:
-			m.finalErr = msg.err
-			m.stage = stageDone
-			return m, tea.Quit
+			if msg.err != nil {
+				m.finalErr = msg.err
+				m.stage = stageDone
+				return m, tea.Quit
+			}
+			if m.applyStarted {
+				// Returned from tea.ExecProcess — apply finished successfully.
+				m.stage = stageDone
+				return m, tea.Quit
+			}
+			// All pre-steps done — hand off to the interactive apply.
+			cmd, err := buildApplyCmd(m.chosen)
+			if err != nil {
+				m.finalErr = err
+				m.stage = stageDone
+				return m, tea.Quit
+			}
+			m.applyStarted = true
+			m.steps = append(m.steps, fmt.Sprintf("applying %s config", m.chosen.flakeTarget))
+			return m, tea.ExecProcess(cmd, func(err error) tea.Msg {
+				return doneMsg{err: err}
+			})
 		}
 
 	case stageDone:
@@ -204,9 +224,6 @@ func startSetup(cfg nixConfig) <-chan tea.Msg {
 		{"ensuring nix-command & flakes enabled", ensureFlakeSupport},
 		{"linking dotfiles to ~/.config/home-manager", linkConfig},
 		{"ensuring home-manager available", ensureHomeManager},
-		{fmt.Sprintf("applying %s config", cfg.flakeTarget), func() error {
-			return applyConfig(cfg)
-		}},
 	}
 
 	ch := make(chan tea.Msg, len(steps)+1)
@@ -302,10 +319,10 @@ func ensureHomeManager() error { // Non-fatal: if home-manager isn't on PATH, ap
 	return nil
 }
 
-func applyConfig(cfg nixConfig) error {
+func buildApplyCmd(cfg nixConfig) (*exec.Cmd, error) {
 	dotfiles, err := findDotfiles()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	flakeArg := fmt.Sprintf("%s#%s", dotfiles, cfg.flakeTarget)
 
@@ -317,10 +334,7 @@ func applyConfig(cfg nixConfig) error {
 		cmd = exec.Command("nix", "run", "nixpkgs#home-manager", "--",
 			"switch", "--flake", flakeArg)
 	}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-	return cmd.Run()
+	return cmd, nil
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
