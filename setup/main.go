@@ -268,7 +268,10 @@ func ensureFlakeSupport() error {
 func linkConfig() error {
 	home, _ := os.UserHomeDir()
 	target := home + "/.config/home-manager"
-	source := findDotfiles()
+	source, err := findDotfiles()
+	if err != nil {
+		return err
+	}
 
 	info, err := os.Lstat(target)
 	if err == nil {
@@ -300,7 +303,10 @@ func ensureHomeManager() error { // Non-fatal: if home-manager isn't on PATH, ap
 }
 
 func applyConfig(cfg nixConfig) error {
-	dotfiles := findDotfiles()
+	dotfiles, err := findDotfiles()
+	if err != nil {
+		return err
+	}
 	flakeArg := fmt.Sprintf("%s#%s", dotfiles, cfg.flakeTarget)
 
 	hmPath, err := exec.LookPath("home-manager")
@@ -320,15 +326,15 @@ func applyConfig(cfg nixConfig) error {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 // findDotfiles locates the home-manager flake by walking up from the binary,
-// then falls back to well-known paths.
-func findDotfiles() string {
+// then falls back to well-known paths. Returns an error if not found.
+func findDotfiles() (string, error) {
 	exe, err := os.Executable()
 	if err == nil {
 		dir := exe
 		for range [10]struct{}{} {
 			dir = parentDir(dir)
 			if fileExists(dir + "/home-manager/.config/home-manager/flake.nix") {
-				return dir + "/home-manager/.config/home-manager"
+				return dir + "/home-manager/.config/home-manager", nil
 			}
 		}
 	}
@@ -341,10 +347,12 @@ func findDotfiles() string {
 	}
 	for _, c := range candidates {
 		if fileExists(c + "/flake.nix") {
-			return c
+			return c, nil
 		}
 	}
-	return "."
+	return "", fmt.Errorf(
+		"could not find dotfiles repo; clone it to ~/Dotfiles and re-run",
+	)
 }
 
 func parentDir(p string) string {

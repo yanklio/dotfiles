@@ -25,6 +25,11 @@
       pkgs = nixpkgs.legacyPackages.${system};
       lib = nixpkgs.lib;
 
+      # Infer username from the environment; fall back to "yanklio".
+      # On a fresh machine run: USER=yourname home-manager switch --flake ...
+      username = let u = builtins.getEnv "USER"; in if u != "" then u else "yanklio";
+      homeDir  = "/home/${username}";
+
       hasWakatimeSecret = builtins.pathExists ./secrets/wakatime_api.age;
 
       # Shared agenix module used by both profiles.
@@ -33,7 +38,7 @@
       agenixModule = [
         agenix.homeManagerModules.default
         {
-          age.identityPaths = [ "/home/yanklio/.ssh/id_ed25519" ];
+          age.identityPaths = [ "${homeDir}/.ssh/id_ed25519" ];
           age.secrets = lib.mkIf hasWakatimeSecret {
             wakatime_api.file = ./secrets/wakatime_api.age;
           };
@@ -46,7 +51,7 @@
       homeConfigurations."yanklio-shell" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         modules = agenixModule ++ [ ./home/home-shell.nix ];
-        extraSpecialArgs = { inherit inputs; };
+        extraSpecialArgs = { inherit inputs username homeDir; };
       };
 
       # Desktop profile: shell + GUI apps (alacritty, zed), composed at flake level
@@ -54,7 +59,7 @@
       homeConfigurations."yanklio-desktop" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         modules = agenixModule ++ [ ./home/home-shell.nix ./home/home-desktop.nix ];
-        extraSpecialArgs = { inherit inputs; };
+        extraSpecialArgs = { inherit inputs username homeDir; };
       };
     };
 }

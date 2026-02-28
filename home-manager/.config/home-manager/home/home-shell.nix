@@ -1,8 +1,8 @@
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, inputs, username, homeDir, ... }:
 
 {
-  home.username = "yanklio";
-  home.homeDirectory = "/home/yanklio";
+  home.username = username;
+  home.homeDirectory = homeDir;
   home.stateVersion = "25.11";
 
   imports = [

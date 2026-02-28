@@ -1,6 +1,8 @@
 { config, lib, pkgs, ... }:
 
 let
+  hasWakatimeSecret = config.age.secrets ? wakatime_api;
+
   zedWakatimeScript = pkgs.writeText "zed-wakatime-api-key.py" ''
     import json
     import os
@@ -139,9 +141,11 @@ in
     };
   };
 
-  home.activation.zedWakatimeApiKey = lib.hm.dag.entryAfter [ "zedSettingsActivation" ] ''
-    SETTINGS_FILE="${config.xdg.configHome}/zed/settings.json" \
-      SECRET_PATH="${config.age.secrets.wakatime_api.path}" \
-      ${pkgs.python3}/bin/python "${zedWakatimeScript}"
-  '';
+  home.activation.zedWakatimeApiKey = lib.mkIf hasWakatimeSecret (
+    lib.hm.dag.entryAfter [ "zedSettingsActivation" ] ''
+      SETTINGS_FILE="${config.xdg.configHome}/zed/settings.json" \
+        SECRET_PATH="${config.age.secrets.wakatime_api.path}" \
+        ${pkgs.python3}/bin/python "${zedWakatimeScript}"
+    ''
+  );
 }
