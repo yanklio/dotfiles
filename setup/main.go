@@ -202,6 +202,7 @@ func startSetup(cfg nixConfig) <-chan tea.Msg {
 	steps := []step{
 		{"checking for nix", ensureNix},
 		{"ensuring nix-command & flakes enabled", ensureFlakeSupport},
+		{"linking dotfiles to ~/.config/home-manager", linkConfig},
 		{"ensuring home-manager available", ensureHomeManager},
 		{fmt.Sprintf("applying %s config", cfg.flakeTarget), func() error {
 			return applyConfig(cfg)
@@ -264,8 +265,36 @@ func ensureFlakeSupport() error {
 	return err
 }
 
-func ensureHomeManager() error {
-	// Non-fatal: if home-manager isn't on PATH, applyConfig falls back to `nix run`.
+func linkConfig() error {
+	home, _ := os.UserHomeDir()
+	target := home + "/.config/home-manager"
+	source := findDotfiles()
+
+	info, err := os.Lstat(target)
+	if err == nil {
+		// Already a symlink pointing to the right place — nothing to do.
+		if info.Mode()&os.ModeSymlink != 0 {
+			existing, _ := os.Readlink(target)
+			if existing == source {
+				return nil
+			}
+			// Wrong target — remove and re-create.
+			if err := os.Remove(target); err != nil {
+				return fmt.Errorf("removing old symlink %s: %w", target, err)
+			}
+		} else {
+			// Real directory exists — bail out, don't overwrite user data.
+			return fmt.Errorf("%s exists and is not a symlink; move it manually first", target)
+		}
+	}
+
+	if err := os.MkdirAll(home+"/.config", 0o755); err != nil {
+		return err
+	}
+	return os.Symlink(source, target)
+}
+
+func ensureHomeManager() error { // Non-fatal: if home-manager isn't on PATH, applyConfig falls back to `nix run`.
 	_, _ = exec.LookPath("home-manager")
 	return nil
 }
