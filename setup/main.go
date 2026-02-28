@@ -252,7 +252,20 @@ func ensureNix() error {
 		`curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm`)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	// The installer doesn't affect the current process's PATH.
+	// Source the nix profile so subsequent exec.LookPath calls find `nix`.
+	nixProfile := "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
+	out, err := exec.Command("bash", "-c",
+		`. `+nixProfile+` && printf '%s' "$PATH"`).Output()
+	if err != nil {
+		return fmt.Errorf("sourcing nix profile: %w", err)
+	}
+	os.Setenv("PATH", string(out))
+	return nil
 }
 
 func ensureFlakeSupport() error {
