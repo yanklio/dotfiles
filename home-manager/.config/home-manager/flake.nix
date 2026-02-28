@@ -23,15 +23,20 @@
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+      lib = nixpkgs.lib;
 
-      # Shared agenix module used by both profiles
+      hasWakatimeSecret = builtins.pathExists ./secrets/wakatime_api.age;
+
+      # Shared agenix module used by both profiles.
+      # The wakatime secret is only wired up when the .age file is present —
+      # safe to apply on a fresh machine where secrets haven't been copied over yet.
       agenixModule = [
         agenix.homeManagerModules.default
         {
-          age.secrets.wakatime_api = {
-            file = ./secrets/wakatime_api.age;
-          };
           age.identityPaths = [ "/home/yanklio/.ssh/id_ed25519" ];
+          age.secrets = lib.mkIf hasWakatimeSecret {
+            wakatime_api.file = ./secrets/wakatime_api.age;
+          };
         }
       ];
     in
