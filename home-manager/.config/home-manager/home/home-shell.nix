@@ -37,6 +37,9 @@
     lazydocker
     pgcli
 
+    # API tools
+    bruno-cli
+
     # Programming tools
     nodejs
     jdk17_headless
