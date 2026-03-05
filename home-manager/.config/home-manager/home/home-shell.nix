@@ -81,6 +81,18 @@
     };
   };
 
+  systemd.user.services.podman = {
+    Unit = {
+      Description = "Podman API Service";
+    };
+    Service = {
+      ExecStart = "${pkgs.podman}/bin/podman system service --time=0";
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
   home.sessionVariables = {
     EDITOR = "nvim";
   };
