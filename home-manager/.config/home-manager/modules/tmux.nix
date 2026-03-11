@@ -10,6 +10,9 @@
     # Enable mouse
     mouse = true;
 
+    # Enable indexing from 1
+    baseIndex = 1;
+
     extraConfig = ''
       # Custom split commands
       bind | split-window -h
@@ -30,6 +33,10 @@
       bind -n M-l select-pane -R
       bind -n M-k select-pane -U
       bind -n M-j select-pane -D
+
+      # Start indexing from 1
+      set -g pane-base-index 1
+      set -g renumber-windows on 
     '';
   };
 }

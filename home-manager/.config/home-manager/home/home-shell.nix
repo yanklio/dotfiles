@@ -43,6 +43,7 @@
     # Programming tools
     nodejs
     jdk17_headless
+    jdt-language-server
     go
     conda
     gcc
