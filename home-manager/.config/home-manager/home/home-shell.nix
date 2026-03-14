@@ -52,6 +52,9 @@
 
     # AI Tools
     opencode
+    claude-code
+    gemini-cli
+    github-copilot-cli
 
     # Fonts
     nerd-fonts.blex-mono
