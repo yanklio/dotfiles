@@ -14,15 +14,15 @@
       font = {
         size = 12.0;
         normal = {
-          family = "Blex Nerd Font Mono";
+          family = "BlexMono Nerd Font Mono";
           style = "Medium";
         };
         bold = {
-          family = "Blex Nerd Font Mono";
+          family = "BlexMono Nerd Font Mono";
           style = "Bold";
         };
         italic = {
-          family = "Blex Nerd Font Mono";
+          family = "BlexMono Nerd Font Mono";
           style = "Italic";
         };
       };

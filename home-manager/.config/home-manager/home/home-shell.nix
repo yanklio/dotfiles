@@ -37,6 +37,9 @@
     lazydocker
     pgcli
 
+    # Remote service tools
+    gh
+
     # API tools
     bruno-cli
 
@@ -55,6 +58,9 @@
     claude-code
     gemini-cli
     github-copilot-cli
+    codex
+    pi-coding-agent
+
 
     # Fonts
     nerd-fonts.blex-mono
