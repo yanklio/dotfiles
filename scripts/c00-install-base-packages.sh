@@ -3,6 +3,16 @@ set -euo pipefail
 
 PACKAGES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/packages"
 DISTRO_PACKAGES_FILE="$PACKAGES_DIR/${PKG:-dnf}.txt"
+DNF_OPTS=(
+    --refresh
+    --disable-repo=fedora,updates
+    --repofrompath=fedora-direct,'https://download.fedoraproject.org/pub/fedora/linux/releases/$releasever/Everything/$basearch/os/'
+    --repofrompath=updates-direct,'https://download.fedoraproject.org/pub/fedora/linux/updates/$releasever/Everything/$basearch/'
+    --setopt=fedora-direct.gpgkey='file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-$releasever-$basearch'
+    --setopt=updates-direct.gpgkey='file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-$releasever-$basearch'
+    --setopt=fedora-direct.gpgcheck=true
+    --setopt=updates-direct.gpgcheck=true
+)
 
 if [[ "${IS_FEDORA:-true}" != "true" ]]; then
     echo "Skipping dnf packages for non-Fedora profile."
@@ -43,7 +53,7 @@ installable_packages=()
 skipped_packages=()
 
 for pkg in "${packages[@]}"; do
-    if rpm -q "$pkg" >/dev/null 2>&1 || dnf -q list --available "$pkg" >/dev/null 2>&1; then
+    if rpm -q "$pkg" >/dev/null 2>&1 || dnf "${DNF_OPTS[@]}" -q list --available "$pkg" >/dev/null 2>&1; then
         installable_packages+=("$pkg")
     else
         skipped_packages+=("$pkg")
@@ -62,11 +72,11 @@ fi
 echo "Installing packages: ${installable_packages[*]}"
 
 if [[ $EUID -eq 0 ]]; then
-    dnf install -y "${installable_packages[@]}"
+    dnf "${DNF_OPTS[@]}" install -y "${installable_packages[@]}"
 else
     if [[ ! -t 0 ]]; then
         echo "No TTY available for sudo."
         exit 0
     fi
-    sudo dnf install -y "${installable_packages[@]}"
+    sudo dnf "${DNF_OPTS[@]}" install -y "${installable_packages[@]}"
 fi
