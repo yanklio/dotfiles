@@ -1,0 +1,5 @@
+# Secrets
+.zsh_secrets
+
+# Chezmoitpl_backup
+.chezmoi*.tmp

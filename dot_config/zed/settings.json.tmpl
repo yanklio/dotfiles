@@ -1,0 +1,76 @@
+{
+  "ui_font_weight": 500,
+  "ui_font_size": 15,
+  "ui_font_family": "Blex Nerd Font",
+  "buffer_font_size": 15,
+  "buffer_font_family": "Blex Nerd Font Mono",
+  "buffer_font_weight": 500,
+  "vim_mode": true,
+  "prettier": {
+    "allowed": true
+  },
+  "theme": {
+    "mode": "system",
+    "light": "Gruvbox Light",
+    "dark": "Gruvbox Dark"
+  },
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Material Icon Theme",
+    "dark": "Material Icon Theme"
+  },
+  "project_panel": {
+    "auto_open": {
+      "on_paste": false
+    },
+    "hide_hidden": false,
+    "hide_root": false,
+    "indent_guides": {
+      "show": "always"
+    },
+    "indent_size": 24.0,
+    "git_status": true,
+    "folder_icons": false,
+    "file_icons": true,
+    "entry_spacing": "standard",
+    "default_width": 241.0,
+    "dock": "left"
+  },
+  "agent": {
+    "message_editor_min_lines": 6,
+    "default_profile": "ask",
+    "always_allow_tool_actions": true
+  },
+  "languages": {
+    "Python": {
+      "language_servers": ["ruff", "!pylsp", "!python-refactoring", "!basedpyright", "!pyright"],
+      "format_on_save": "on",
+      "formatter": {
+        "language_server": {
+          "name": "ruff"
+        }
+      },
+      "code_actions_on_format": {
+        "source.organizeImports.ruff": true,
+        "source.fixAll.ruff": true
+      }
+    }
+  },
+  "lsp": {
+    "wakatime": {
+      "initialization_options": {
+        "api-key": {{ index . "wakatimeApiKey" | default "" | quote }}
+      }
+    },
+    "ruff": {
+      "initialization_options": {
+        "settings": {
+          "lineLength": 100,
+          "lint": {
+            "extendSelect": ["I"]
+          }
+        }
+      }
+    }
+  },
+}

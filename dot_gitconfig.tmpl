@@ -1,0 +1,24 @@
+[user]
+	name = {{ index (index . "git" | default dict) "name" | default "yanklio" | quote }}
+	email = {{ index (index . "git" | default dict) "email" | default "y.ustinov2004@gmail.com" | quote }}
+
+[core]
+	editor = nvim
+
+[init]
+	defaultBranch = main
+
+[alias]
+	st = status
+	co = checkout
+	br = branch
+	ci = commit
+	unstage = reset HEAD --
+	last = log -1 HEAD
+	visual = log --graph --oneline --decorate --all
+
+[pull]
+	rebase = false
+
+[push]
+	default = simple

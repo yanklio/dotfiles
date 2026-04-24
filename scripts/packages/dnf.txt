@@ -1,0 +1,11 @@
+zoxide
+bash-completion
+pgcli
+conda
+python3-pip
+python3-isort
+delve
+gopls
+black
+ruff
+ollama
