@@ -38,7 +38,7 @@ Run the bootstrap manually:
 ./scripts/bootstrap.sh
 ```
 
-On a fresh Fedora machine, `chezmoi init --apply ...` will automatically run the dnf package installer, Go-based dev tools, shell tool installer, npm global installer, Flatpak installer, user service setup for `ollama` and `podman`, and GNOME setup through `run_once_00_bootstrap.sh.tmpl`.
+On a fresh Fedora machine, `chezmoi init --apply ...` will automatically run the dnf package installer, Go-based dev tools, shell tool installer, npm global installer, upstream CLI installers for Zed and Ollama, Flatpak installer, user service setup for `ollama` and `podman`, and GNOME setup through `run_once_00_bootstrap.sh.tmpl`.
 
 Because this is a `run_once` script, it runs once per machine unless you manually remove the generated state in chezmoi.
 

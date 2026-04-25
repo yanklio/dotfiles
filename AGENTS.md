@@ -9,7 +9,7 @@
 - `.chezmoi.toml.tmpl` renders profile flags: `IS_GNOME`, `IS_FEDORA`, `IS_DEBIAN`, and `PKG`.
 - `run_once_00_bootstrap.sh.tmpl` is the only chezmoi auto-run entrypoint; it exports profile flags and calls `scripts/bootstrap.sh`.
 - Do not call `chezmoi source-path` from inside a `run_once` script; nested chezmoi calls can deadlock on the persistent state lock during `chezmoi apply`.
-- `scripts/bootstrap.sh` delegates in order: dnf packages, Go dev tools, shell tools, npm globals, Flatpaks, systemd user services, GNOME settings.
+- `scripts/bootstrap.sh` delegates in order: dnf packages, Go dev tools, shell tools, npm globals, upstream CLI installers, Flatpaks, systemd user services, GNOME settings.
 
 ## Verification
 - Render templates: `chezmoi execute-template < .chezmoi.toml.tmpl` and `chezmoi execute-template < run_once_00_bootstrap.sh.tmpl`.
@@ -20,6 +20,7 @@
 ## Install Gotchas
 - `scripts/c00-install-base-packages.sh` needs an interactive TTY for sudo; non-interactive agent runs will skip dnf installation with `No TTY available for sudo.`
 - The dnf script disables mirror-based `fedora` and `updates` repos for its transaction and adds direct `download.fedoraproject.org` repos to avoid flaky mirrors.
+- Zed and Ollama are installed by `scripts/c04-install-cli-tools.sh` via their upstream install scripts; keep them out of package inventories.
 - Flatpak installs may still prompt when `flathub` exists in both system and user installations; the script skips apps that cannot install non-interactively.
 - npm globals install into `~/.local` via `npm install --global --prefix "$HOME/.local"`.
 
