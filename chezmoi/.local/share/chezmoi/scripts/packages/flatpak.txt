@@ -1,0 +1,4 @@
+com.discord.Discord
+com.slack.Slack
+com.google.Chrome
+app.zen_browser.zen

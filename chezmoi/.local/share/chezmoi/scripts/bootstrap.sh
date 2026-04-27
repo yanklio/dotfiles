@@ -4,21 +4,32 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 packages_dir="$script_dir/packages"
 
-read_packages() {
-    grep -v -E '^\s*(#|$)' "$1" || true
+have() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+read_list() {
+    local file="$1"
+    local line
+
+    [[ -r "$file" ]] || return 0
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ "$line" =~ ^[[:space:]]*(#|$) ]] && continue
+        printf '%s\n' "$line"
+    done < "$file"
 }
 
 install_fedora_packages() {
-    [[ "${IS_FEDORA:-true}" == "true" ]] || return 0
-    command -v dnf >/dev/null 2>&1 || return 0
+    have dnf || return 0
 
-    mapfile -t packages < <(read_packages "$packages_dir/common.txt"; read_packages "$packages_dir/dnf.txt")
+    mapfile -t packages < <(read_list "$packages_dir/common.txt"; read_list "$packages_dir/dnf.txt")
     [[ ${#packages[@]} -gt 0 ]] || return 0
 
     echo "Installing Fedora packages..."
     if [[ $EUID -eq 0 ]]; then
         dnf install -y "${packages[@]}"
-    elif [[ -t 0 ]]; then
+    elif [[ -t 0 ]] && have sudo; then
         sudo dnf install -y "${packages[@]}"
     else
         echo "No TTY available for sudo; skipping Fedora packages."
@@ -26,13 +37,19 @@ install_fedora_packages() {
 }
 
 install_go_tools() {
-    command -v go >/dev/null 2>&1 || return 0
+    have go || return 0
+
+    mapfile -t tools < <(read_list "$packages_dir/go.txt")
+    [[ ${#tools[@]} -gt 0 ]] || return 0
 
     echo "Installing Go tools..."
-    go install github.com/jesseduffield/lazygit@latest
+    for tool in "${tools[@]}"; do
+        go install "$tool"
+    done
 }
 
 install_oh_my_zsh() {
+    have curl || return 0
     [[ ! -d "$HOME/.oh-my-zsh" ]] || return 0
 
     echo "Installing oh-my-zsh..."
@@ -40,9 +57,9 @@ install_oh_my_zsh() {
 }
 
 install_npm_packages() {
-    command -v npm >/dev/null 2>&1 || return 0
+    have npm || return 0
 
-    mapfile -t packages < <(read_packages "$packages_dir/npm.txt")
+    mapfile -t packages < <(read_list "$packages_dir/npm.txt")
     [[ ${#packages[@]} -gt 0 ]] || return 0
 
     echo "Installing npm packages..."
@@ -50,37 +67,52 @@ install_npm_packages() {
 }
 
 install_extra_cli_tools() {
-    if ! command -v zed >/dev/null 2>&1; then
-        echo "Installing Zed..."
-        curl -f https://zed.dev/install.sh | sh
-    fi
+    have curl || return 0
 
-    if ! command -v ollama >/dev/null 2>&1; then
-        echo "Installing Ollama..."
-        curl -fsSL https://ollama.com/install.sh | sh
-    fi
+    local command_name display_name install_url
+
+    while IFS='|' read -r command_name display_name install_url; do
+        [[ -n "$command_name" && -n "$display_name" && -n "$install_url" ]] || continue
+        have "$command_name" && continue
+
+        echo "Installing $display_name..."
+        curl -fsSL "$install_url" | sh
+    done < <(read_list "$packages_dir/upstream.txt")
 }
 
 install_flatpaks() {
-    command -v flatpak >/dev/null 2>&1 || return 0
+    have flatpak || return 0
 
-    for app in com.discord.Discord com.slack.Slack com.google.Chrome app.zen_browser.zen; do
-        flatpak info --system "$app" >/dev/null 2>&1 && continue
-        flatpak install -y flathub "$app" 2>/dev/null || echo "Skipping $app; install manually if needed."
+    mapfile -t apps < <(read_list "$packages_dir/flatpak.txt")
+    [[ ${#apps[@]} -gt 0 ]] || return 0
+
+    echo "Installing Flatpaks..."
+    for app in "${apps[@]}"; do
+        flatpak info "$app" >/dev/null 2>&1 && continue
+        flatpak install --noninteractive --user -y flathub "$app" 2>/dev/null \
+            || flatpak install --noninteractive --system -y flathub "$app" 2>/dev/null \
+            || echo "Skipping $app; install manually if needed."
     done
 }
 
 enable_services() {
-    command -v systemctl >/dev/null 2>&1 || return 0
+    have systemctl || return 0
 
-    if command -v ollama >/dev/null 2>&1; then
-        systemctl --user enable --now ollama 2>/dev/null || sudo systemctl enable --now ollama 2>/dev/null || true
+    if have ollama; then
+        systemctl --user enable --now ollama 2>/dev/null \
+            || { have sudo && sudo systemctl enable --now ollama 2>/dev/null; } \
+            || true
     fi
 }
 
+is_gnome() {
+    local desktop="${XDG_CURRENT_DESKTOP:-}:${XDG_SESSION_DESKTOP:-}:${DESKTOP_SESSION:-}"
+    [[ "${desktop,,}" == *gnome* ]]
+}
+
 apply_gnome_settings() {
-    [[ "${IS_GNOME:-true}" == "true" ]] || return 0
-    command -v gsettings >/dev/null 2>&1 || return 0
+    have gsettings || return 0
+    is_gnome || return 0
 
     echo "Applying GNOME settings..."
     gsettings set org.gnome.desktop.wm.keybindings close "['<Super>w']"
@@ -99,13 +131,17 @@ apply_gnome_settings() {
     done
 }
 
-echo "Running bootstrap..."
-install_fedora_packages
-install_go_tools
-install_oh_my_zsh
-install_npm_packages
-install_extra_cli_tools
-install_flatpaks
-enable_services
-apply_gnome_settings
-echo "Bootstrap complete."
+main() {
+    echo "Running bootstrap..."
+    install_fedora_packages
+    install_go_tools
+    install_oh_my_zsh
+    install_npm_packages
+    install_extra_cli_tools
+    install_flatpaks
+    enable_services
+    apply_gnome_settings
+    echo "Bootstrap complete."
+}
+
+main "$@"

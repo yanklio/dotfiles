@@ -1,17 +1,8 @@
 {{- if eq .chezmoi.os "linux" -}}
-{{- $isFedora := index . "is_fedora" | default (eq .chezmoi.osRelease.id "fedora") -}}
-{{- $isDebian := index . "is_debian" | default (or (eq .chezmoi.osRelease.id "debian") (eq .chezmoi.osRelease.id "ubuntu")) -}}
-{{- $isGnome := index . "is_gnome" | default $isFedora -}}
-{{- $pkg := index . "pkg" | default "dnf" -}}
 #!/usr/bin/env bash
 set -euo pipefail
 
 SCRIPTS_DIR={{ .chezmoi.sourceDir | quote }}/scripts
-
-export IS_GNOME="{{ $isGnome }}"
-export IS_FEDORA="{{ $isFedora }}"
-export IS_DEBIAN="{{ $isDebian }}"
-export PKG="{{ $pkg }}"
 
 exec bash "$SCRIPTS_DIR/bootstrap.sh" "$@"
 {{- end -}}

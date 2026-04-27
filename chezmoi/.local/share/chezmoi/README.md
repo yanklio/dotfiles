@@ -28,7 +28,7 @@ Set Git identity and optional secrets in `~/.config/chezmoi/chezmoi.toml`:
 
 ## Package Setup
 
-Packages are managed separately from dotfiles.
+Packages are managed separately from dotfiles in `scripts/packages/`.
 
 Zsh uses `oh-my-zsh` with the `simple` theme, installed by `scripts/bootstrap.sh`.
 
@@ -42,22 +42,18 @@ On a fresh Fedora machine, `chezmoi init --apply ...` will automatically run `sc
 
 Because this is a `run_once` script, it runs once per machine unless you manually remove the generated state in chezmoi.
 
-Machine profile flags are rendered in `.chezmoi.toml.tmpl` and exported by `run_once_00_bootstrap.sh.tmpl` before delegating to `scripts/bootstrap.sh`:
-
-- `IS_GNOME`
-- `IS_FEDORA`
-- `IS_DEBIAN`
-- `PKG`
-
-`scripts/bootstrap.sh` is the single bootstrap script. Distro-specific sections short-circuit when the rendered profile does not apply.
+`run_once_00_bootstrap.sh.tmpl` only delegates to `scripts/bootstrap.sh` on Linux. The bootstrap script detects available tools directly, so there are no machine profile flags to maintain.
 
 Package lists live in:
 
 - `scripts/packages/common.txt`
 - `scripts/packages/dnf.txt`
+- `scripts/packages/go.txt`
 - `scripts/packages/npm.txt`
+- `scripts/packages/flatpak.txt`
+- `scripts/packages/upstream.txt`
 
-Some packages in `scripts/packages/dnf.txt` stay commented because they need manual review, COPR, or non-`dnf` installation.
+Repository-only files such as `README.md`, `AGENTS.md`, `docs/`, and `scripts/` are excluded from chezmoi apply by `.chezmoiignore`.
 
 ## Npm Packages
 
@@ -81,7 +77,7 @@ Run manually:
 chezmoi diff
 
 # Apply changes
-chezmoi apply --exclude=scripts
+chezmoi apply
 
 # Edit a managed file
 chezmoi edit ~/.config/zsh/.zshrc
@@ -92,7 +88,7 @@ chezmoi re-add ~/.config/zsh/.zshrc
 
 ## Optional: GNOME Settings
 
-Apply GNOME desktop tweaks:
+GNOME desktop tweaks are applied by `scripts/bootstrap.sh` when GNOME is detected:
 ```bash
 ./scripts/bootstrap.sh
 ```
