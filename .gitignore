@@ -1,5 +1,2 @@
-# Secrets
-.zsh_secrets
-
-# Chezmoitpl_backup
-.chezmoi*.tmp
+# Local agent tooling, not managed dotfiles.
+chezmoi/.local/share/chezmoi/.opencode/

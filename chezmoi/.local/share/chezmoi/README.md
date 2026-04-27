@@ -30,7 +30,7 @@ Set Git identity and optional secrets in `~/.config/chezmoi/chezmoi.toml`:
 
 Packages are managed separately from dotfiles.
 
-Zsh uses `oh-my-zsh` with the `simple` theme, installed by `scripts/c02-shell-tools.sh`.
+Zsh uses `oh-my-zsh` with the `simple` theme, installed by `scripts/bootstrap.sh`.
 
 Run the bootstrap manually:
 
@@ -38,7 +38,7 @@ Run the bootstrap manually:
 ./scripts/bootstrap.sh
 ```
 
-On a fresh Fedora machine, `chezmoi init --apply ...` will automatically run the dnf package installer, Go-based dev tools, shell tool installer, npm global installer, upstream CLI installers for Zed and Ollama, Flatpak installer, user service setup for `ollama` and `podman`, and GNOME setup through `run_once_00_bootstrap.sh.tmpl`.
+On a fresh Fedora machine, `chezmoi init --apply ...` will automatically run `scripts/bootstrap.sh` through `run_once_00_bootstrap.sh.tmpl`.
 
 Because this is a `run_once` script, it runs once per machine unless you manually remove the generated state in chezmoi.
 
@@ -49,7 +49,7 @@ Machine profile flags are rendered in `.chezmoi.toml.tmpl` and exported by `run_
 - `IS_DEBIAN`
 - `PKG`
 
-Scripts in `scripts/` are plain shell scripts. They can be run individually for debugging, and distro-specific scripts short-circuit when the rendered profile does not apply.
+`scripts/bootstrap.sh` is the single bootstrap script. Distro-specific sections short-circuit when the rendered profile does not apply.
 
 Package lists live in:
 
@@ -71,7 +71,7 @@ Current npm-installed tools:
 Run manually:
 
 ```bash
-./scripts/c03-install-node-npm-globals.sh
+./scripts/bootstrap.sh
 ```
 
 ## Daily Use
@@ -94,5 +94,5 @@ chezmoi re-add ~/.config/zsh/.zshrc
 
 Apply GNOME desktop tweaks:
 ```bash
-./scripts/e01-setup-gnome.sh
+./scripts/bootstrap.sh
 ```
