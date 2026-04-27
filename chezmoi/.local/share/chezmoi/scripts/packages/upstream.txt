@@ -1,2 +1,3 @@
+# Format: command|display name|install script URL
 zed|Zed|https://zed.dev/install.sh
 ollama|Ollama|https://ollama.com/install.sh
