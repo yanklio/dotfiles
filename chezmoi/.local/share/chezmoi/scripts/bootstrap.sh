@@ -131,8 +131,7 @@ apply_gnome_settings() {
     done
 }
 
-main() {
-    echo "Running bootstrap..."
+run_all() {
     install_fedora_packages
     install_go_tools
     install_oh_my_zsh
@@ -141,6 +140,61 @@ main() {
     install_flatpaks
     enable_services
     apply_gnome_settings
+}
+
+usage() {
+    cat <<EOF
+Usage: $0 [section ...]
+
+Sections:
+  all       Run every bootstrap section (default)
+  packages  Install system packages with dnf when available
+  go        Install Go tools
+  shell     Install oh-my-zsh
+  npm       Install npm global packages
+  upstream  Install upstream CLI tools
+  flatpak   Install Flatpak apps
+  services  Enable user/system services
+  gnome     Apply GNOME settings when GNOME is detected
+EOF
+}
+
+run_section() {
+    case "$1" in
+        all) run_all ;;
+        packages) install_fedora_packages ;;
+        go) install_go_tools ;;
+        shell) install_oh_my_zsh ;;
+        npm) install_npm_packages ;;
+        upstream) install_extra_cli_tools ;;
+        flatpak|flatpaks) install_flatpaks ;;
+        services) enable_services ;;
+        gnome) apply_gnome_settings ;;
+        help|-h|--help) usage ;;
+        *)
+            printf 'Unknown bootstrap section: %s\n\n' "$1" >&2
+            usage >&2
+            exit 2
+            ;;
+    esac
+}
+
+main() {
+    if [[ "${1:-}" == "help" || "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+        usage
+        return 0
+    fi
+
+    echo "Running bootstrap..."
+
+    if [[ $# -eq 0 ]]; then
+        run_all
+    else
+        for section in "$@"; do
+            run_section "$section"
+        done
+    fi
+
     echo "Bootstrap complete."
 }
 

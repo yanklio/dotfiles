@@ -38,6 +38,12 @@ Run the bootstrap manually:
 ./scripts/bootstrap.sh
 ```
 
+Run selected sections when you do not need the full bootstrap:
+
+```bash
+./scripts/bootstrap.sh packages npm flatpak gnome
+```
+
 On a fresh Fedora machine, `chezmoi init --apply ...` will automatically run `scripts/bootstrap.sh` through `run_once_00_bootstrap.sh.tmpl`.
 
 Because this is a `run_once` script, it runs once per machine unless you manually remove the generated state in chezmoi.
