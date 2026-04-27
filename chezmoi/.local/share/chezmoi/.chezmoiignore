@@ -1,0 +1,6 @@
+README.md
+AGENTS.md
+docs/**
+scripts/**
+.opencode/**
+.gitignore

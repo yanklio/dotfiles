@@ -4,108 +4,198 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 packages_dir="$script_dir/packages"
 
-read_packages() {
-    grep -v -E '^\s*(#|$)' "$1" || true
+have() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+read_list() {
+  local file="$1"
+  local line
+
+  [[ -r "$file" ]] || return 0
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ "$line" =~ ^[[:space:]]*(#|$) ]] && continue
+    printf '%s\n' "$line"
+  done < "$file"
 }
 
 install_fedora_packages() {
-    [[ "${IS_FEDORA:-true}" == "true" ]] || return 0
-    command -v dnf >/dev/null 2>&1 || return 0
+  have dnf || return 0
 
-    mapfile -t packages < <(read_packages "$packages_dir/common.txt"; read_packages "$packages_dir/dnf.txt")
-    [[ ${#packages[@]} -gt 0 ]] || return 0
+  mapfile -t packages < <(read_list "$packages_dir/common.txt"; read_list "$packages_dir/dnf.txt")
+  [[ ${#packages[@]} -gt 0 ]] || return 0
 
-    echo "Installing Fedora packages..."
-    if [[ $EUID -eq 0 ]]; then
-        dnf install -y "${packages[@]}"
-    elif [[ -t 0 ]]; then
-        sudo dnf install -y "${packages[@]}"
-    else
-        echo "No TTY available for sudo; skipping Fedora packages."
-    fi
+  echo "Installing Fedora packages..."
+  if [[ $EUID -eq 0 ]]; then
+    dnf install -y "${packages[@]}"
+  elif [[ -t 0 ]] && have sudo; then
+    sudo dnf install -y "${packages[@]}"
+  else
+    echo "No TTY available for sudo; skipping Fedora packages."
+  fi
 }
 
 install_go_tools() {
-    command -v go >/dev/null 2>&1 || return 0
+  have go || return 0
 
-    echo "Installing Go tools..."
-    go install github.com/jesseduffield/lazygit@latest
+  mapfile -t tools < <(read_list "$packages_dir/go.txt")
+  [[ ${#tools[@]} -gt 0 ]] || return 0
+
+  echo "Installing Go tools..."
+  for tool in "${tools[@]}"; do
+    go install "$tool"
+  done
 }
 
 install_oh_my_zsh() {
-    [[ ! -d "$HOME/.oh-my-zsh" ]] || return 0
+  have curl || return 0
+  [[ ! -d "$HOME/.oh-my-zsh" ]] || return 0
 
-    echo "Installing oh-my-zsh..."
-    RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+  echo "Installing oh-my-zsh..."
+  RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 }
 
 install_npm_packages() {
-    command -v npm >/dev/null 2>&1 || return 0
+  have npm || return 0
 
-    mapfile -t packages < <(read_packages "$packages_dir/npm.txt")
-    [[ ${#packages[@]} -gt 0 ]] || return 0
+  mapfile -t packages < <(read_list "$packages_dir/npm.txt")
+  [[ ${#packages[@]} -gt 0 ]] || return 0
 
-    echo "Installing npm packages..."
-    npm install --global --prefix "$HOME/.local" "${packages[@]}"
+  echo "Installing npm packages..."
+  npm install --global --prefix "$HOME/.local" "${packages[@]}"
 }
 
 install_extra_cli_tools() {
-    if ! command -v zed >/dev/null 2>&1; then
-        echo "Installing Zed..."
-        curl -f https://zed.dev/install.sh | sh
-    fi
+  have curl || return 0
 
-    if ! command -v ollama >/dev/null 2>&1; then
-        echo "Installing Ollama..."
-        curl -fsSL https://ollama.com/install.sh | sh
-    fi
+  local command_name display_name install_url
+
+  while IFS='|' read -r command_name display_name install_url; do
+    [[ -n "$command_name" && -n "$display_name" && -n "$install_url" ]] || continue
+    have "$command_name" && continue
+
+    echo "Installing $display_name..."
+    curl -fsSL "$install_url" | sh
+  done < <(read_list "$packages_dir/upstream.txt")
 }
 
 install_flatpaks() {
-    command -v flatpak >/dev/null 2>&1 || return 0
+  have flatpak || return 0
 
-    for app in com.discord.Discord com.slack.Slack com.google.Chrome app.zen_browser.zen; do
-        flatpak info --system "$app" >/dev/null 2>&1 && continue
-        flatpak install -y flathub "$app" 2>/dev/null || echo "Skipping $app; install manually if needed."
-    done
+  mapfile -t apps < <(read_list "$packages_dir/flatpak.txt")
+  [[ ${#apps[@]} -gt 0 ]] || return 0
+
+  echo "Installing Flatpaks..."
+  for app in "${apps[@]}"; do
+    flatpak info "$app" >/dev/null 2>&1 && continue
+    flatpak install --noninteractive --user -y flathub "$app" 2>/dev/null \
+      || flatpak install --noninteractive --system -y flathub "$app" 2>/dev/null \
+      || echo "Skipping $app; install manually if needed."
+  done
 }
 
 enable_services() {
-    command -v systemctl >/dev/null 2>&1 || return 0
+  have systemctl || return 0
 
-    if command -v ollama >/dev/null 2>&1; then
-        systemctl --user enable --now ollama 2>/dev/null || sudo systemctl enable --now ollama 2>/dev/null || true
-    fi
+  if have ollama; then
+    systemctl --user enable --now ollama 2>/dev/null \
+      || { have sudo && sudo systemctl enable --now ollama 2>/dev/null; } \
+      || true
+  fi
+}
+
+is_gnome() {
+  local desktop="${XDG_CURRENT_DESKTOP:-}:${XDG_SESSION_DESKTOP:-}:${DESKTOP_SESSION:-}"
+  [[ "${desktop,,}" == *gnome* ]]
 }
 
 apply_gnome_settings() {
-    [[ "${IS_GNOME:-true}" == "true" ]] || return 0
-    command -v gsettings >/dev/null 2>&1 || return 0
+  have gsettings || return 0
+  is_gnome || return 0
 
-    echo "Applying GNOME settings..."
-    gsettings set org.gnome.desktop.wm.keybindings close "['<Super>w']"
-    gsettings set org.gnome.desktop.wm.keybindings maximize "['<Super>Up']"
-    gsettings set org.gnome.desktop.wm.keybindings begin-resize "['<Super>BackSpace']"
-    gsettings set org.gnome.desktop.wm.keybindings toggle-fullscreen "['<Shift>F11']"
-    gsettings set org.gnome.mutter dynamic-workspaces false
-    gsettings set org.gnome.desktop.wm.preferences num-workspaces 6
+  echo "Applying GNOME settings..."
+  gsettings set org.gnome.desktop.wm.keybindings close "['<Super>w']"
+  gsettings set org.gnome.desktop.wm.keybindings maximize "['<Super>Up']"
+  gsettings set org.gnome.desktop.wm.keybindings begin-resize "['<Super>BackSpace']"
+  gsettings set org.gnome.desktop.wm.keybindings toggle-fullscreen "['<Shift>F11']"
+  gsettings set org.gnome.mutter dynamic-workspaces false
+  gsettings set org.gnome.desktop.wm.preferences num-workspaces 6
 
-    for i in 1 2 3 4 5 6 7 8 9; do
-        gsettings set org.gnome.shell.keybindings "switch-to-application-$i" "['<Alt>$i']"
-    done
+  for i in 1 2 3 4 5 6 7 8 9; do
+    gsettings set org.gnome.shell.keybindings "switch-to-application-$i" "['<Alt>$i']"
+  done
 
-    for i in 1 2 3 4 5 6; do
-        gsettings set org.gnome.desktop.wm.keybindings "switch-to-workspace-$i" "['<Super>$i']"
-    done
+  for i in 1 2 3 4 5 6; do
+    gsettings set org.gnome.desktop.wm.keybindings "switch-to-workspace-$i" "['<Super>$i']"
+  done
 }
 
-echo "Running bootstrap..."
-install_fedora_packages
-install_go_tools
-install_oh_my_zsh
-install_npm_packages
-install_extra_cli_tools
-install_flatpaks
-enable_services
-apply_gnome_settings
-echo "Bootstrap complete."
+run_all() {
+  install_fedora_packages
+  install_go_tools
+  install_oh_my_zsh
+  install_npm_packages
+  install_extra_cli_tools
+  install_flatpaks
+  enable_services
+  apply_gnome_settings
+}
+
+usage() {
+  cat <<EOF
+Usage: $0 [section ...]
+
+Sections:
+  all       Run every bootstrap section (default)
+  packages  Install system packages with dnf when available
+  go        Install Go tools
+  shell     Install oh-my-zsh
+  npm       Install npm global packages
+  upstream  Install upstream CLI tools
+  flatpak   Install Flatpak apps
+  services  Enable user/system services
+  gnome     Apply GNOME settings when GNOME is detected
+EOF
+}
+
+run_section() {
+  case "$1" in
+    all) run_all ;;
+    packages) install_fedora_packages ;;
+    go) install_go_tools ;;
+    shell) install_oh_my_zsh ;;
+    npm) install_npm_packages ;;
+    upstream) install_extra_cli_tools ;;
+    flatpak | flatpaks) install_flatpaks ;;
+    services) enable_services ;;
+    gnome) apply_gnome_settings ;;
+    help | -h | --help) usage ;;
+    *)
+      printf 'Unknown bootstrap section: %s\n\n' "$1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+}
+
+main() {
+  if [[ "${1:-}" == "help" || "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    usage
+    return 0
+  fi
+
+  echo "Running bootstrap..."
+
+  if [[ $# -eq 0 ]]; then
+    run_all
+  else
+    for section in "$@"; do
+      run_section "$section"
+    done
+  fi
+
+  echo "Bootstrap complete."
+}
+
+main "$@"

@@ -1,16 +1,5 @@
-{{- $pkg := "dnf" -}}
-{{- if or (eq .chezmoi.osRelease.id "debian") (eq .chezmoi.osRelease.id "ubuntu") -}}
-{{-   $pkg = "apt" -}}
-{{- end -}}
-
 [merge]
   command = "nvim -d"
 
 [edit]
   command = "nvim"
-
-[data]
-  is_gnome  = {{ eq .chezmoi.osRelease.id "fedora" }}
-  is_fedora = {{ eq .chezmoi.osRelease.id "fedora" }}
-  is_debian = {{ or (eq .chezmoi.osRelease.id "debian") (eq .chezmoi.osRelease.id "ubuntu") }}
-  pkg       = {{ $pkg | quote }}

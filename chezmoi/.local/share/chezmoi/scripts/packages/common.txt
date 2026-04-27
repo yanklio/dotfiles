@@ -1,8 +1,13 @@
+# Git
 git
 git-delta
+
+# Shell
 zsh
 zsh-autosuggestions
 zsh-syntax-highlighting
+
+# Editors and terminal tools
 vim-enhanced
 neovim
 tmux
@@ -10,6 +15,8 @@ fastfetch
 htop
 curl
 stow
+
+# Modern CLI replacements
 bat
 eza
 fzf
@@ -18,13 +25,19 @@ fd-find
 btop
 cava
 gh
+
+# Runtimes and build tools
 nodejs
 nodejs-npm
 golang
 gcc
 python3
 podman
+
+# Desktop integration
 xdg-utils
 wl-clipboard
+
+# Fonts
 google-noto-sans-fonts
 google-noto-emoji-fonts
