@@ -11,7 +11,7 @@ chezmoi init --apply yanklio
 
 ## Personal Data
 
-Set Git identity and optional secrets in `~/.config/chezmoi/chezmoi.toml`:
+Non-secret defaults live in `.chezmoidata.toml`. Override Git identity and optional secrets in `~/.config/chezmoi/chezmoi.toml` when needed:
 
 ```toml
 [data.git]

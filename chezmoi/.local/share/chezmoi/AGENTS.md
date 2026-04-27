@@ -4,6 +4,7 @@
 - This is a chezmoi source tree; `dot_` files render to dotfiles and `run_once_*.tmpl` scripts execute from chezmoi, not directly from the repo root.
 - Do not import agent skills into this repo; `.opencode/` is local tooling and should stay out of managed dotfiles unless explicitly requested.
 - `.chezmoiignore` keeps repo-only files such as `README.md`, `AGENTS.md`, `docs/`, `scripts/`, `.opencode/`, and `.gitignore` out of `$HOME`.
+- `.chezmoidata.toml` stores non-secret template defaults; machine-local overrides belong in `~/.config/chezmoi/chezmoi.toml`.
 - Package inventories are in `scripts/packages/`; preserve package lists unless the user explicitly asks to change packages.
 
 ## Bootstrap Flow
