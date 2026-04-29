@@ -3,9 +3,16 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 packages_dir="$script_dir/packages"
+post_setup_notes=()
 
 have() {
   command -v "$1" >/dev/null 2>&1
+}
+
+add_post_setup_note() {
+  local note="$1"
+  [[ -n "$note" ]] || return 0
+  post_setup_notes+=("$note")
 }
 
 read_list() {
@@ -77,7 +84,23 @@ install_extra_cli_tools() {
 
     echo "Installing $display_name..."
     curl -fsSL "$install_url" | sh
+
+    case "$command_name" in
+      tailscale)
+        add_post_setup_note "Tailscale: run 'sudo tailscale up' to complete setup."
+        ;;
+    esac
   done < <(read_list "$packages_dir/upstream.txt")
+}
+
+print_post_setup_notes() {
+  [[ ${#post_setup_notes[@]} -gt 0 ]] || return 0
+
+  echo
+  echo "Post-setup notes:"
+  for note in "${post_setup_notes[@]}"; do
+    echo "- $note"
+  done
 }
 
 install_flatpaks() {
@@ -195,6 +218,7 @@ main() {
     done
   fi
 
+  print_post_setup_notes
   echo "Bootstrap complete."
 }
 
