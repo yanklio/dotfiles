@@ -1,3 +1,7 @@
 # Agent CLIs
 @anthropic-ai/claude-code
 opencode-ai
+@mariozechner/pi-coding-agent
+
+# Development tools
+yarn
