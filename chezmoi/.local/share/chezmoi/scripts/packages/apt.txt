@@ -11,14 +11,20 @@ zsh-syntax-highlighting
 vim
 neovim
 tmux
+fastfetch
+htop
 curl
 stow
 
 # Modern CLI replacements
 bat
-ripgrep
+eza
 fzf
+ripgrep
 fd-find
+btop
+cava
+gh
 
 # Runtimes and build tools
 nodejs
@@ -26,7 +32,12 @@ npm
 golang-go
 gcc
 python3
+podman
 
 # Desktop integration
 xdg-utils
 wl-clipboard
+
+# Fonts
+fonts-noto
+fonts-noto-color-emoji

@@ -8,7 +8,7 @@ zsh-autosuggestions
 zsh-syntax-highlighting
 
 # Editors and terminal tools
-vim-enhanced
+vim
 neovim
 tmux
 fastfetch
@@ -28,7 +28,6 @@ gh
 
 # Runtimes and build tools
 nodejs
-nodejs-npm
 golang
 gcc
 python3
@@ -39,5 +38,3 @@ xdg-utils
 wl-clipboard
 
 # Fonts
-google-noto-sans-fonts
-google-noto-emoji-fonts
