@@ -28,7 +28,8 @@ gh
 
 # Runtimes and build tools
 nodejs
-golang
+npm
+golang-go
 gcc
 python3
 podman
@@ -38,3 +39,5 @@ xdg-utils
 wl-clipboard
 
 # Fonts
+fonts-noto
+fonts-noto-color-emoji

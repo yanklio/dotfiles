@@ -43,6 +43,22 @@ install_fedora_packages() {
   fi
 }
 
+install_apt_packages() {
+  have apt-get || return 0
+
+  mapfile -t packages < <(read_list "$packages_dir/common.txt"; read_list "$packages_dir/apt.txt")
+  [[ ${#packages[@]} -gt 0 ]] || return 0
+
+  echo "Installing Debian/Ubuntu packages..."
+  if [[ $EUID -eq 0 ]]; then
+    apt-get install -y "${packages[@]}"
+  elif [[ -t 0 ]] && have sudo; then
+    sudo apt-get install -y "${packages[@]}"
+  else
+    echo "No TTY available for sudo; skipping apt packages."
+  fi
+}
+
 install_go_tools() {
   have go || return 0
 
@@ -156,6 +172,7 @@ apply_gnome_settings() {
 
 run_all() {
   install_fedora_packages
+  install_apt_packages
   install_go_tools
   install_oh_my_zsh
   install_npm_packages
@@ -171,7 +188,7 @@ Usage: $0 [section ...]
 
 Sections:
   all       Run every bootstrap section (default)
-  packages  Install system packages with dnf when available
+  packages  Install system packages with dnf/apt when available
   go        Install Go tools
   shell     Install oh-my-zsh
   npm       Install npm global packages
@@ -185,7 +202,7 @@ EOF
 run_section() {
   case "$1" in
     all) run_all ;;
-    packages) install_fedora_packages ;;
+    packages) install_fedora_packages; install_apt_packages ;;
     go) install_go_tools ;;
     shell) install_oh_my_zsh ;;
     npm) install_npm_packages ;;

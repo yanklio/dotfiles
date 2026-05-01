@@ -13,3 +13,9 @@ delve
 gopls
 black
 ruff
+
+# Fedora-only packages
+vim-enhanced
+nodejs-npm
+google-noto-sans-fonts
+google-noto-emoji-fonts
