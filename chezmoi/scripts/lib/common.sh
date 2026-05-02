@@ -32,8 +32,12 @@ as_root() {
 
   if [[ $EUID -eq 0 ]]; then
     run_cmd "$@"
-  elif [[ -t 0 ]] && have sudo; then
-    run_cmd sudo "$@"
+  elif have sudo; then
+    if [[ -t 0 ]]; then
+      run_cmd sudo "$@"
+    else
+      run_cmd sudo -n "$@"
+    fi
   else
     return 1
   fi

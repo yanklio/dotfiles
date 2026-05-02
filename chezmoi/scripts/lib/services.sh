@@ -43,6 +43,7 @@ configure_nginx_proxy() {
     rm -f /etc/nginx/conf.d/home-lab.conf /etc/nginx/conf.d/dotfiles-*.conf
     for conf in "$config_dir"/*.conf; do
       [[ -e "$conf" ]] || continue
+      rm -f "/etc/nginx/conf.d/$(basename "$conf")"
       install -m 0644 "$conf" "/etc/nginx/conf.d/dotfiles-$(basename "$conf")"
     done
   ' bash "$config_dir" || {
