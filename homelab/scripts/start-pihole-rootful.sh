@@ -46,6 +46,11 @@ if [ -n "${HOMELAB_IP:-}" ]; then
 
     echo "Configuring Pi-hole local DNS records..."
     sudo podman exec pihole pihole-FTL --config dns.hosts "$dns_hosts" >/dev/null
+
+    if [ "${DHCP_ACTIVE:-true}" = "true" ]; then
+        echo "Configuring Pi-hole DHCP DNS option..."
+        sudo podman exec pihole pihole-FTL --config misc.dnsmasq_lines "[\"dhcp-option=option:dns-server,$HOMELAB_IP\"]" >/dev/null
+    fi
 fi
 
 if sudo systemctl list-unit-files podman-restart.service >/dev/null 2>&1; then

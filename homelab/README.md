@@ -13,6 +13,12 @@ Local homelab services live here. Keep this separate from chezmoi-managed dotfil
 - `apps/pi-hole/` runs rootful because DNS/DHCP need privileged host networking (`53/udp`, `53/tcp`, `67/udp`).
 - Other apps run rootless with regular `podman compose`.
 
+Fresh server install after cloning this repo:
+
+```bash
+~/Dotfiles/scripts/install-homelab-server.sh
+```
+
 Start everything:
 
 ```bash

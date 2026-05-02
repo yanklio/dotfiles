@@ -10,7 +10,7 @@ cd "$APPS_DIR"
 
 [ -f "$ENV_FILE" ] && export $(grep -v '^#' "$ENV_FILE" | xargs)
 
-"$SCRIPT_DIR/start-pihole-rootful.sh"
+bash "$SCRIPT_DIR/start-pihole-rootful.sh"
 
 for container_dir in */; do
     if [ "$container_dir" = "pi-hole/" ]; then
