@@ -47,6 +47,18 @@ read_list() {
   done < "$file"
 }
 
+is_homelab_server() {
+  case "${DOTFILES_HOMELAB_SERVER:-}" in
+    1 | true | yes | on) return 0 ;;
+    0 | false | no | off) return 1 ;;
+  esac
+
+  case "${DOTFILES_MACHINE_ROLE:-client}" in
+    server | homelab-server) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 install_fedora_packages() {
   have dnf || return 0
 
@@ -182,6 +194,7 @@ configure_nginx_proxy() {
   if [[ $EUID -eq 0 ]]; then
     mkdir -p /etc/nginx/conf.d
     disable_default_nginx_sites
+    rm -f /etc/nginx/conf.d/home-lab.conf
     ln -sf "$root/homelab/services/nginx/conf.d"/*.conf /etc/nginx/conf.d/
     "$nginx" -t
     systemctl enable --now nginx
@@ -189,6 +202,7 @@ configure_nginx_proxy() {
   elif [[ -t 0 ]] && have sudo; then
     sudo mkdir -p /etc/nginx/conf.d
     sudo bash -c 'if [[ -L /etc/nginx/sites-enabled/default ]]; then rm /etc/nginx/sites-enabled/default; elif [[ -e /etc/nginx/sites-enabled/default ]]; then mv -n /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default.disabled; fi; for site in /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/welcome.conf; do [[ -e "$site" ]] || continue; mv -n "$site" "$site.disabled"; done'
+    sudo rm -f /etc/nginx/conf.d/home-lab.conf
     sudo ln -sf "$root/homelab/services/nginx/conf.d"/*.conf /etc/nginx/conf.d/
     sudo "$nginx" -t
     sudo systemctl enable --now nginx
@@ -249,7 +263,9 @@ run_all() {
   install_extra_cli_tools
   install_flatpaks
   enable_services
-  configure_nginx_proxy
+  if is_homelab_server; then
+    configure_nginx_proxy
+  fi
   apply_gnome_settings
 }
 
@@ -266,7 +282,7 @@ Sections:
   upstream  Install upstream CLI tools
   flatpak   Install Flatpak apps
   services  Enable user/system services
-  nginx     Configure host nginx reverse proxy
+  nginx     Configure host nginx reverse proxy (server only; explicit run forces it)
   gnome     Apply GNOME settings when GNOME is detected
 EOF
 }

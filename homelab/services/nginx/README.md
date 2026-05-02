@@ -10,7 +10,16 @@ This directory keeps host nginx config in the repo, split per service.
 
 ## Apply on host
 
-Nginx is installed from the shared package inventory and this config is linked by its own bootstrap section:
+Nginx is installed on all machines, but this homelab reverse-proxy config is server-only. Normal client bootstraps leave nginx config untouched unless the machine role is set to `server`.
+
+Set the role on the homelab server in `~/.config/chezmoi/chezmoi.toml`:
+
+```toml
+[data]
+  machineRole = "server"
+```
+
+Then run the normal bootstrap, or force only nginx setup with:
 
 ```bash
 ~/Dotfiles/chezmoi/.local/share/chezmoi/scripts/bootstrap.sh nginx

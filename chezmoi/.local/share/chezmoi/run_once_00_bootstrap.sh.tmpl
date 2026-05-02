@@ -3,6 +3,7 @@
 set -euo pipefail
 
 SCRIPTS_DIR={{ .chezmoi.sourceDir | quote }}/scripts
+export DOTFILES_MACHINE_ROLE={{ .machineRole | quote }}
 
 exec bash "$SCRIPTS_DIR/bootstrap.sh" "$@"
 {{- end -}}
