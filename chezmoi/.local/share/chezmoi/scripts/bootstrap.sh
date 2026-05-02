@@ -173,26 +173,23 @@ enable_services() {
 }
 
 configure_nginx_proxy() {
-  local root conf dest nginx
+  local root nginx
   nginx="$(nginx_bin)" || return 0
   root="$(dotfiles_root)" || return 0
-  conf="$root/homelab/services/nginx/conf.d/home-lab.conf"
-  dest="/etc/nginx/conf.d/home-lab.conf"
-
-  [[ -r "$conf" ]] || return 0
+  [[ -d "$root/homelab/services/nginx/conf.d" ]] || return 0
 
   echo "Configuring nginx reverse proxy..."
   if [[ $EUID -eq 0 ]]; then
     mkdir -p /etc/nginx/conf.d
     disable_default_nginx_sites
-    ln -sf "$conf" "$dest"
+    ln -sf "$root/homelab/services/nginx/conf.d"/*.conf /etc/nginx/conf.d/
     "$nginx" -t
     systemctl enable --now nginx
     systemctl reload nginx
   elif [[ -t 0 ]] && have sudo; then
     sudo mkdir -p /etc/nginx/conf.d
     sudo bash -c 'if [[ -L /etc/nginx/sites-enabled/default ]]; then rm /etc/nginx/sites-enabled/default; elif [[ -e /etc/nginx/sites-enabled/default ]]; then mv -n /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default.disabled; fi; for site in /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/welcome.conf; do [[ -e "$site" ]] || continue; mv -n "$site" "$site.disabled"; done'
-    sudo ln -sf "$conf" "$dest"
+    sudo ln -sf "$root/homelab/services/nginx/conf.d"/*.conf /etc/nginx/conf.d/
     sudo "$nginx" -t
     sudo systemctl enable --now nginx
     sudo systemctl reload nginx
