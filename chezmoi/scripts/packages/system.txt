@@ -6,12 +6,15 @@
 git|core|all
 git-delta|core|all
 zsh|core|all
+zsh-autosuggestions|core|all
+zsh-syntax-highlighting|core|all
 vim|core|all
 neovim|core|all
 tmux|core|all
 fastfetch|core|all
 htop|core|all
 curl|core|all
+stow|core|all
 bat|core|all
 eza|core|all
 fzf|core|all
@@ -32,6 +35,7 @@ golang|dev|dnf
 golang-go|dev|apt
 nodejs-npm|dev|dnf
 pgcli|dev|dnf
+conda|dev|dnf
 python3-pip|dev|dnf
 python3-isort|dev|dnf
 delve|dev|dnf
