@@ -33,11 +33,11 @@ The bootstrap step:
 
 ## Route layout
 
-- `http://glance.localhost/` → `127.0.0.1:8080`
-- `http://pihole.localhost/` → `/admin/` → `127.0.0.1:8081`
+- `http://glance.localhost/` and `http://glance.home/` → `127.0.0.1:8080`
+- `http://pihole.localhost/` and `http://pihole.home/` → `/admin/` → `127.0.0.1:8081`
 
 Add more per-service `*.localhost.conf` files for other containers bound on localhost high ports.
 
 ## Name resolution
 
-`*.localhost` names work locally without extra DNS records. If LAN access is needed later, add a separate DNS-backed hostname setup intentionally instead of mixing it into the local config.
+`*.localhost` names work locally without extra DNS records. `*.home` names are for LAN clients and should be added as Pi-hole Local DNS records pointing at the homelab server IP.

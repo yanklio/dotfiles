@@ -25,4 +25,4 @@ Start only Pi-hole:
 ./scripts/start-pihole-rootful.sh
 ```
 
-Pi-hole requires `homelab/.env` with `PIHOLE_PASSWORD` set.
+Pi-hole requires `homelab/.env` with `PIHOLE_PASSWORD` set. Set `HOMELAB_IP`, `HOMELAB_DOMAIN`, and `HOMELAB_DNS_NAMES` there to make Local DNS records transferable between machines.
