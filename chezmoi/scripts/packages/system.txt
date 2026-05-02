@@ -1,0 +1,57 @@
+# Format: package|roles|package-managers
+# roles: all, core, dev, desktop, server
+# package-managers: all, dnf, apt
+
+# Core
+git|core|all
+git-delta|core|all
+zsh|core|all
+zsh-autosuggestions|core|all
+zsh-syntax-highlighting|core|all
+vim|core|all
+neovim|core|all
+tmux|core|all
+fastfetch|core|all
+htop|core|all
+curl|core|all
+stow|core|all
+bat|core|all
+eza|core|all
+fzf|core|all
+ripgrep|core|all
+fd-find|core|all
+btop|core|all
+gh|core|all
+vim-enhanced|core|dnf
+zoxide|core|dnf
+bash-completion|core|dnf
+
+# Development
+nodejs|dev|all
+gcc|dev|all
+python3|dev|all
+npm|dev|apt
+golang|dev|dnf
+golang-go|dev|apt
+nodejs-npm|dev|dnf
+pgcli|dev|dnf
+conda|dev|dnf
+python3-pip|dev|dnf
+python3-isort|dev|dnf
+delve|dev|dnf
+gopls|dev|dnf
+black|dev|dnf
+ruff|dev|dnf
+
+# Desktop
+xdg-utils|desktop|all
+wl-clipboard|desktop|all
+cava|desktop|all
+fonts-noto|desktop|apt
+fonts-noto-color-emoji|desktop|apt
+google-noto-sans-fonts|desktop|dnf
+google-noto-emoji-fonts|desktop|dnf
+
+# Server
+podman|server|all
+nginx|server|all

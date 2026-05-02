@@ -1,0 +1,27 @@
+services:
+  pihole:
+    image: docker.io/pihole/pihole:latest
+    container_name: pihole
+    # Pi-hole is intentionally run with sudo/rootful Podman. DNS and DHCP need
+    # privileged host networking that is unreliable in rootless containers.
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    dns:
+      - 8.8.8.8
+    environment:
+      TZ: ${TZ:-Europe/Warsaw}
+      FTLCONF_webserver_api_password: ${PIHOLE_PASSWORD}
+      FTLCONF_webserver_port: "8081"
+      FTLCONF_dns_listeningMode: "ALL"
+      FTLCONF_dhcp_active: ${DHCP_ACTIVE:-true}
+      FTLCONF_dhcp_start: ${DHCP_START:-192.168.1.100}
+      FTLCONF_dhcp_end: ${DHCP_END:-192.168.1.200}
+      FTLCONF_dhcp_router: ${DHCP_ROUTER:-192.168.1.1}
+      FTLCONF_dhcp_leaseTime: ${DHCP_LEASE_TIME:-24h}
+      PIHOLE_DOMAIN: ${PIHOLE_DOMAIN:-local}
+    volumes:
+      - ./etc-pihole:/etc/pihole:z
+      - ./etc-dnsmasq.d:/etc/dnsmasq.d:z
+    restart: unless-stopped

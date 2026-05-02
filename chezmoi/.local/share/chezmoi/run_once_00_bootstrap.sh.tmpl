@@ -1,8 +1,0 @@
-{{- if eq .chezmoi.os "linux" -}}
-#!/usr/bin/env bash
-set -euo pipefail
-
-SCRIPTS_DIR={{ .chezmoi.sourceDir | quote }}/scripts
-
-exec bash "$SCRIPTS_DIR/bootstrap.sh" "$@"
-{{- end -}}
