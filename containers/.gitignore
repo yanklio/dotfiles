@@ -1,0 +1,5 @@
+.env
+
+# Pi-hole runtime state, generated databases, TLS keys, leases, and backups.
+pi-hole/etc-pihole/**
+pi-hole/etc-dnsmasq.d/**

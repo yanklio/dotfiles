@@ -15,6 +15,26 @@ add_post_setup_note() {
   post_setup_notes+=("$note")
 }
 
+dotfiles_root() {
+  local root
+
+  root="$(cd "$script_dir/../../../../.." && pwd)"
+  [[ -d "$root/containers" ]] || return 1
+  printf '%s\n' "$root"
+}
+
+nginx_bin() {
+  if command -v nginx >/dev/null 2>&1; then
+    command -v nginx
+  elif [[ -x /usr/sbin/nginx ]]; then
+    printf '%s\n' /usr/sbin/nginx
+  elif [[ -x /usr/bin/nginx ]]; then
+    printf '%s\n' /usr/bin/nginx
+  else
+    return 1
+  fi
+}
+
 read_list() {
   local file="$1"
   local line
@@ -138,10 +158,63 @@ enable_services() {
   have systemctl || return 0
 
   if have ollama; then
+    echo "Enabling ollama service..."
     systemctl --user enable --now ollama 2>/dev/null \
-      || { have sudo && sudo systemctl enable --now ollama 2>/dev/null; } \
-      || true
+      || { have sudo && sudo systemctl enable --now ollama; } \
+      || echo "Warning: could not enable ollama service"
   fi
+
+  if have podman; then
+    echo "Enabling podman.socket..."
+    systemctl --user enable --now podman.socket 2>/dev/null \
+      || { have sudo && sudo systemctl enable --now podman.socket; } \
+      || echo "Warning: could not enable podman.socket"
+  fi
+}
+
+configure_nginx_proxy() {
+  local root conf dest nginx
+  nginx="$(nginx_bin)" || return 0
+  root="$(dotfiles_root)" || return 0
+  conf="$root/services/nginx/conf.d/home-lab.conf"
+  dest="/etc/nginx/conf.d/home-lab.conf"
+
+  [[ -r "$conf" ]] || return 0
+
+  echo "Configuring nginx reverse proxy..."
+  if [[ $EUID -eq 0 ]]; then
+    mkdir -p /etc/nginx/conf.d
+    disable_default_nginx_sites
+    ln -sf "$conf" "$dest"
+    "$nginx" -t
+    systemctl enable --now nginx
+    systemctl reload nginx
+  elif [[ -t 0 ]] && have sudo; then
+    sudo mkdir -p /etc/nginx/conf.d
+    sudo bash -c 'if [[ -L /etc/nginx/sites-enabled/default ]]; then rm /etc/nginx/sites-enabled/default; elif [[ -e /etc/nginx/sites-enabled/default ]]; then mv -n /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default.disabled; fi; for site in /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/welcome.conf; do [[ -e "$site" ]] || continue; mv -n "$site" "$site.disabled"; done'
+    sudo ln -sf "$conf" "$dest"
+    sudo "$nginx" -t
+    sudo systemctl enable --now nginx
+    sudo systemctl reload nginx
+  else
+    echo "No TTY available for sudo; skipping nginx reverse proxy setup."
+    add_post_setup_note "Nginx: run 'bash ~/Dotfiles/chezmoi/.local/share/chezmoi/scripts/bootstrap.sh nginx' from an interactive shell."
+  fi
+}
+
+disable_default_nginx_sites() {
+  local site
+
+  if [[ -L /etc/nginx/sites-enabled/default ]]; then
+    rm /etc/nginx/sites-enabled/default
+  elif [[ -e /etc/nginx/sites-enabled/default ]]; then
+    mv -n /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default.disabled
+  fi
+
+  for site in /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/welcome.conf; do
+    [[ -e "$site" ]] || continue
+    mv -n "$site" "$site.disabled"
+  done
 }
 
 is_gnome() {
@@ -179,6 +252,7 @@ run_all() {
   install_extra_cli_tools
   install_flatpaks
   enable_services
+  configure_nginx_proxy
   apply_gnome_settings
 }
 
@@ -195,6 +269,7 @@ Sections:
   upstream  Install upstream CLI tools
   flatpak   Install Flatpak apps
   services  Enable user/system services
+  nginx     Configure host nginx reverse proxy
   gnome     Apply GNOME settings when GNOME is detected
 EOF
 }
@@ -209,6 +284,7 @@ run_section() {
     upstream) install_extra_cli_tools ;;
     flatpak | flatpaks) install_flatpaks ;;
     services) enable_services ;;
+    nginx) configure_nginx_proxy ;;
     gnome) apply_gnome_settings ;;
     help | -h | --help) usage ;;
     *)
