@@ -2,6 +2,4 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-bash "$script_dir/stop-all.sh"
-bash "$script_dir/start-all.sh"
+exec "$script_dir/homelab.sh" restart "$@"

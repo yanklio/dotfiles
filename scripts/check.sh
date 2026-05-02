@@ -11,8 +11,24 @@ check_shell() {
   echo "Checking shell syntax..."
   bash -n "$root"/scripts/*.sh
   bash -n "$root"/homelab/scripts/*.sh
+  bash -n "$root"/homelab/scripts/lib/*.sh
   bash -n "$root/chezmoi/scripts/bootstrap.sh"
   bash -n "$root"/chezmoi/scripts/lib/*.sh
+}
+
+check_homelab_compose() {
+  have podman || return 0
+  podman compose version >/dev/null 2>&1 || return 0
+
+  echo "Checking homelab compose files..."
+  local compose_file app_dir env_arg=()
+  [[ -f "$root/homelab/.env.example" ]] && env_arg=(--env-file "$root/homelab/.env.example")
+
+  for compose_file in "$root"/homelab/apps/*/docker-compose.yml; do
+    [[ -f "$compose_file" ]] || continue
+    app_dir="$(dirname "$compose_file")"
+    (cd "$app_dir" && podman compose "${env_arg[@]}" config >/dev/null)
+  done
 }
 
 check_chezmoi_templates() {
@@ -42,6 +58,7 @@ main() {
   check_shell
   check_chezmoi_templates
   check_chezmoi_diff
+  check_homelab_compose
   check_ignored_runtime_state
   echo "Checks passed."
 }

@@ -6,7 +6,7 @@ Local homelab services live here. Keep this separate from chezmoi-managed dotfil
 
 - `apps/`: Podman Compose app definitions.
 - `services/`: host service config managed from this repo.
-- `scripts/`: install and lifecycle scripts for this homelab stack.
+- `scripts/`: install, dispatcher, lifecycle wrappers, and shared libraries.
 
 ## Runtime Model
 
@@ -19,15 +19,20 @@ Fresh server install after cloning this repo:
 ~/Dotfiles/homelab/scripts/install-server.sh
 ```
 
-Start everything:
+Manage the stack with the main dispatcher:
+
+```bash
+~/Dotfiles/homelab/scripts/homelab.sh start
+~/Dotfiles/homelab/scripts/homelab.sh stop
+~/Dotfiles/homelab/scripts/homelab.sh restart
+~/Dotfiles/homelab/scripts/homelab.sh status
+~/Dotfiles/homelab/scripts/homelab.sh doctor
+```
+
+The older lifecycle commands are wrappers around the dispatcher:
 
 ```bash
 ./scripts/start-all.sh
-```
-
-Stop, restart, or inspect containers:
-
-```bash
 ./scripts/stop-all.sh
 ./scripts/restart-all.sh
 ./scripts/status.sh
@@ -39,6 +44,14 @@ Start only Pi-hole:
 ./scripts/start-pihole-rootful.sh
 ```
 
-Pi-hole requires `homelab/.env` with `PIHOLE_PASSWORD` set. Set `HOMELAB_IP`, `HOMELAB_DOMAIN`, and `HOMELAB_DNS_NAMES` there to make Local DNS records transferable between machines.
+Pi-hole requires `homelab/.env` with `PIHOLE_PASSWORD` set. Keep that file private; scripts tighten it to mode `600` when they read or generate it.
+
+Set `HOMELAB_IP`, `HOMELAB_DOMAIN`, and `HOMELAB_DNS_NAMES` there to make Local DNS records transferable between machines.
 
 Set `HOMELAB_APPS` to control rootless app startup order. It defaults to `glance`.
+
+Run a dry-run preview without starting/stopping containers:
+
+```bash
+HOMELAB_DRY_RUN=1 ./scripts/homelab.sh start
+```

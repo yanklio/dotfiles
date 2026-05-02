@@ -20,10 +20,11 @@
 
 ## Homelab
 - The fresh-server installer is `homelab/scripts/install-server.sh`.
-- Homelab lifecycle scripts live beside it in `homelab/scripts/`.
+- Homelab lifecycle goes through `homelab/scripts/homelab.sh`; the older lifecycle scripts are wrappers.
+- Keep homelab implementation in focused `homelab/scripts/lib/*.sh` modules when it would otherwise become hard to read.
 - Homelab runtime state and secrets are ignored by `homelab/.gitignore`.
 
 ## Verification
 - Run all repository checks with: `scripts/check.sh`.
-- If diagnosing manually, check shell syntax with: `bash -n scripts/*.sh homelab/scripts/*.sh chezmoi/scripts/bootstrap.sh chezmoi/scripts/lib/*.sh`.
+- If diagnosing manually, check shell syntax with: `bash -n scripts/*.sh homelab/scripts/*.sh homelab/scripts/lib/*.sh chezmoi/scripts/bootstrap.sh chezmoi/scripts/lib/*.sh`.
 - Preview chezmoi changes from the source tree with: `chezmoi --source="$HOME/Dotfiles/chezmoi" diff --exclude=scripts`.

@@ -96,11 +96,12 @@ EOF
 
 ensure_homelab_env() {
   if [[ -f "$env_file" ]]; then
+    chmod 600 "$env_file" 2>/dev/null || true
     echo "Using existing $env_file"
     return 0
   fi
 
-  local ip gateway prefix password
+  local ip gateway prefix password old_umask
   ip="$(detect_ip)"
   gateway="$(detect_gateway)"
 
@@ -112,18 +113,22 @@ ensure_homelab_env() {
   read -rsp "Pi-hole admin password: " password
   echo
 
-  cat > "$env_file" <<EOF
-PIHOLE_PASSWORD=$password
-DHCP_ACTIVE=true
-DHCP_START=$prefix.100
-DHCP_END=$prefix.200
-DHCP_ROUTER=$gateway
-DHCP_LEASE_TIME=24h
-PIHOLE_DOMAIN=home
-HOMELAB_IP=$ip
-HOMELAB_DOMAIN=home
-HOMELAB_DNS_NAMES=pihole,glance
-EOF
+  old_umask="$(umask)"
+  umask 077
+  {
+    printf 'PIHOLE_PASSWORD=%s\n' "$password"
+    printf 'DHCP_ACTIVE=true\n'
+    printf 'DHCP_START=%s.100\n' "$prefix"
+    printf 'DHCP_END=%s.200\n' "$prefix"
+    printf 'DHCP_ROUTER=%s\n' "$gateway"
+    printf 'DHCP_LEASE_TIME=24h\n'
+    printf 'PIHOLE_DOMAIN=home\n'
+    printf 'HOMELAB_IP=%s\n' "$ip"
+    printf 'HOMELAB_DOMAIN=home\n'
+    printf 'HOMELAB_DNS_NAMES=pihole,glance\n'
+  } > "$env_file"
+  umask "$old_umask"
+  chmod 600 "$env_file"
 }
 
 main() {
@@ -141,7 +146,7 @@ main() {
   chezmoi apply
 
   ensure_homelab_env
-  bash "$homelab_dir/scripts/start-all.sh"
+  "$homelab_dir/scripts/homelab.sh" start
   "$chezmoi_source/scripts/bootstrap.sh" nginx
 
   echo "Homelab server install complete."
