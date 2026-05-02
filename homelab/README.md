@@ -6,7 +6,7 @@ Local homelab services live here. Keep this separate from chezmoi-managed dotfil
 
 - `apps/`: Podman Compose app definitions.
 - `services/`: host service config managed from this repo.
-- `scripts/`: lifecycle scripts for this homelab stack.
+- `scripts/`: install and lifecycle scripts for this homelab stack.
 
 ## Runtime Model
 
@@ -16,13 +16,21 @@ Local homelab services live here. Keep this separate from chezmoi-managed dotfil
 Fresh server install after cloning this repo:
 
 ```bash
-~/Dotfiles/scripts/install-homelab-server.sh
+~/Dotfiles/homelab/scripts/install-server.sh
 ```
 
 Start everything:
 
 ```bash
 ./scripts/start-all.sh
+```
+
+Stop, restart, or inspect containers:
+
+```bash
+./scripts/stop-all.sh
+./scripts/restart-all.sh
+./scripts/status.sh
 ```
 
 Start only Pi-hole:
@@ -32,3 +40,5 @@ Start only Pi-hole:
 ```
 
 Pi-hole requires `homelab/.env` with `PIHOLE_PASSWORD` set. Set `HOMELAB_IP`, `HOMELAB_DOMAIN`, and `HOMELAB_DNS_NAMES` there to make Local DNS records transferable between machines.
+
+Set `HOMELAB_APPS` to control rootless app startup order. It defaults to `glance`.

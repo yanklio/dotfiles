@@ -1,5 +1,6 @@
 wakatimeApiKey = ""
 machineRole = "client"
+gnomeSettings = "auto"
 
 [git]
 name = "yanklio"

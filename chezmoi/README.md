@@ -5,8 +5,9 @@ Managed with [chezmoi](https://www.chezmoi.io/).
 ## Quick Start
 
 ```bash
-# Initialize chezmoi with this repo and apply immediately
-chezmoi init --apply yanklio
+git clone https://github.com/yanklio/Dotfiles.git ~/Dotfiles
+chezmoi init --source="$HOME/Dotfiles/chezmoi"
+chezmoi apply
 ```
 
 ## Personal Data
@@ -20,11 +21,15 @@ Non-secret defaults live in `.chezmoidata.toml`. Override Git identity and optio
 
 [data]
   wakatimeApiKey = "your-api-key-here"
+  machineRole = "client"
+  gnomeSettings = "auto"
 ```
 
 `dot_gitconfig.tmpl` reads `data.git.*`.
 
-`dot_config/zed/settings.json.tmpl` reads `data.wakatimeApiKey`.
+`dot_config/zed/private_settings.json.tmpl` reads `data.wakatimeApiKey`.
+
+`scripts/bootstrap.sh` reads `data.machineRole` and `data.gnomeSettings` through first-run installer environment exports or `~/.config/chezmoi/chezmoi.toml` defaults.
 
 ## Package Setup
 
@@ -44,20 +49,21 @@ Run selected sections when you do not need the full bootstrap:
 ./scripts/bootstrap.sh packages npm flatpak gnome
 ```
 
-On a fresh Fedora machine, `chezmoi init --apply ...` will automatically run `scripts/bootstrap.sh` through `run_once_00_bootstrap.sh.tmpl`.
+On a fresh Linux machine, the first-run installer runs `scripts/bootstrap.sh` explicitly after `chezmoi apply`.
 
-Because this is a `run_once` script, it runs once per machine unless you manually remove the generated state in chezmoi.
+`chezmoi apply` only manages dotfiles. Run `scripts/bootstrap.sh` manually when package lists, tools, services, or GNOME settings change.
 
-`run_once_00_bootstrap.sh.tmpl` only delegates to `scripts/bootstrap.sh` on Linux. The bootstrap script detects available tools directly, so there are no machine profile flags to maintain.
+The bootstrap script is a small dispatcher over `scripts/lib/*.sh`, detects available tools directly, and supports `DOTFILES_DRY_RUN=1`.
 
 Package lists live in:
 
-- `scripts/packages/common.txt`
-- `scripts/packages/dnf.txt`
+- `scripts/packages/system.txt`
 - `scripts/packages/go.txt`
 - `scripts/packages/npm.txt`
 - `scripts/packages/flatpak.txt`
 - `scripts/packages/upstream.txt`
+
+`system.txt` uses `package|roles|package-managers`, where roles are `core`, `dev`, `desktop`, or `server`, and package managers are `all`, `dnf`, or `apt`.
 
 Repository-only files such as `README.md`, `AGENTS.md`, `docs/`, and `scripts/` are excluded from chezmoi apply by `.chezmoiignore`.
 

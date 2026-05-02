@@ -1,26 +1,63 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOMELAB_DIR="$(dirname "$SCRIPT_DIR")"
-APPS_DIR="$HOMELAB_DIR/apps"
-ENV_FILE="$HOMELAB_DIR/.env"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+homelab_dir="$(dirname "$script_dir")"
+apps_dir="$homelab_dir/apps"
+env_file="$homelab_dir/.env"
 
-cd "$APPS_DIR"
+have() {
+  command -v "$1" >/dev/null 2>&1
+}
 
-[ -f "$ENV_FILE" ] && export $(grep -v '^#' "$ENV_FILE" | xargs)
+require() {
+  have "$1" || {
+    echo "$1 is required" >&2
+    exit 1
+  }
+}
 
-bash "$SCRIPT_DIR/start-pihole-rootful.sh"
+load_env() {
+  [[ -f "$env_file" ]] || {
+    echo "Missing $env_file. Copy homelab/.env.example to homelab/.env and set PIHOLE_PASSWORD." >&2
+    exit 1
+  }
 
-for container_dir in */; do
-    if [ "$container_dir" = "pi-hole/" ]; then
-        continue
-    fi
+  set -a
+  # shellcheck disable=SC1090
+  source "$env_file"
+  set +a
+}
 
-    if [ -f "$container_dir/docker-compose.yml" ]; then
-        echo "Starting $container_dir..."
-        (cd "$container_dir" && podman compose --env-file "$ENV_FILE" up -d)
-    fi
-done
+start_app() {
+  local app="$1" app_dir="$apps_dir/$app"
+  [[ -f "$app_dir/docker-compose.yml" ]] || {
+    echo "Skipping $app; missing docker-compose.yml" >&2
+    return 0
+  }
 
-echo "All containers started."
+  echo "Starting $app..."
+  (cd "$app_dir" && podman compose --env-file "$env_file" up -d)
+}
+
+main() {
+  require podman
+  podman compose version >/dev/null 2>&1 || {
+    echo "podman compose is required" >&2
+    exit 1
+  }
+
+  load_env
+  bash "$script_dir/start-pihole-rootful.sh"
+
+  local app apps
+  apps="${HOMELAB_APPS:-glance}"
+  for app in $apps; do
+    [[ "$app" != "pi-hole" ]] || continue
+    start_app "$app"
+  done
+
+  echo "All homelab containers started."
+}
+
+main "$@"

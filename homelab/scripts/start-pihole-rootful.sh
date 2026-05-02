@@ -1,60 +1,93 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOMELAB_DIR="$(dirname "$SCRIPT_DIR")"
-PIHOLE_DIR="$HOMELAB_DIR/apps/pi-hole"
-ENV_FILE="$HOMELAB_DIR/.env"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+homelab_dir="$(dirname "$script_dir")"
+pihole_dir="$homelab_dir/apps/pi-hole"
+env_file="$homelab_dir/.env"
 
-if [ ! -f "$ENV_FILE" ]; then
-    echo "Missing $ENV_FILE. Copy homelab/.env.example to homelab/.env and set PIHOLE_PASSWORD." >&2
+have() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+require() {
+  have "$1" || {
+    echo "$1 is required" >&2
     exit 1
-fi
+  }
+}
 
-set -a
-# shellcheck disable=SC1090
-source "$ENV_FILE"
-set +a
-
-if ! command -v sudo >/dev/null 2>&1; then
-    echo "sudo is required to run Pi-hole rootful for DNS/DHCP." >&2
+load_env() {
+  [[ -f "$env_file" ]] || {
+    echo "Missing $env_file. Copy homelab/.env.example to homelab/.env and set PIHOLE_PASSWORD." >&2
     exit 1
-fi
+  }
 
-echo "Stopping rootless Pi-hole if it exists..."
-podman rm -f pihole >/dev/null 2>&1 || true
+  set -a
+  # shellcheck disable=SC1090
+  source "$env_file"
+  set +a
+}
 
-echo "Starting Pi-hole rootful for DNS/DHCP..."
-(cd "$PIHOLE_DIR" && sudo podman compose --env-file "$ENV_FILE" up -d)
+require_env() {
+  local name="$1"
+  [[ -n "${!name:-}" ]] || {
+    echo "$name must be set in $env_file" >&2
+    exit 1
+  }
+}
 
-if [ -n "${HOMELAB_IP:-}" ]; then
-    domain="${HOMELAB_DOMAIN:-${PIHOLE_DOMAIN:-home}}"
-    names="${HOMELAB_DNS_NAMES:-pihole,glance}"
-    dns_hosts="[]"
+json_dns_hosts() {
+  local domain names host entries=()
+  domain="${HOMELAB_DOMAIN:-${PIHOLE_DOMAIN:-home}}"
+  names="${HOMELAB_DNS_NAMES:-pihole,glance}"
 
-    IFS=',' read -ra name_list <<< "$names"
-    for name in "${name_list[@]}"; do
-        name="${name//[[:space:]]/}"
-        [ -n "$name" ] || continue
+  IFS=',' read -ra entries <<< "$names"
+  printf '['
+  local first=1 name
+  for name in "${entries[@]}"; do
+    name="${name//[[:space:]]/}"
+    [[ -n "$name" ]] || continue
+    host="$HOMELAB_IP $name.$domain"
+    [[ $first -eq 1 ]] || printf ','
+    printf '"%s"' "$host"
+    first=0
+  done
+  printf ']'
+}
 
-        if [ "$dns_hosts" = "[]" ]; then
-            dns_hosts="[\"$HOMELAB_IP $name.$domain\"]"
-        else
-            dns_hosts="${dns_hosts%]},\"$HOMELAB_IP $name.$domain\"]"
-        fi
-    done
+main() {
+  require podman
+  require sudo
+  podman compose version >/dev/null 2>&1 || {
+    echo "podman compose is required" >&2
+    exit 1
+  }
 
+  load_env
+  require_env PIHOLE_PASSWORD
+
+  echo "Stopping rootless Pi-hole if it exists..."
+  podman rm -f pihole >/dev/null 2>&1 || true
+
+  echo "Starting Pi-hole rootful for DNS/DHCP..."
+  (cd "$pihole_dir" && sudo podman compose --env-file "$env_file" up -d)
+
+  if [[ -n "${HOMELAB_IP:-}" ]]; then
     echo "Configuring Pi-hole local DNS records..."
-    sudo podman exec pihole pihole-FTL --config dns.hosts "$dns_hosts" >/dev/null
+    sudo podman exec pihole pihole-FTL --config dns.hosts "$(json_dns_hosts)" >/dev/null
 
-    if [ "${DHCP_ACTIVE:-true}" = "true" ]; then
-        echo "Configuring Pi-hole DHCP DNS option..."
-        sudo podman exec pihole pihole-FTL --config misc.dnsmasq_lines "[\"dhcp-option=option:dns-server,$HOMELAB_IP\"]" >/dev/null
+    if [[ "${DHCP_ACTIVE:-true}" == "true" ]]; then
+      echo "Configuring Pi-hole DHCP DNS option..."
+      sudo podman exec pihole pihole-FTL --config misc.dnsmasq_lines "[\"dhcp-option=option:dns-server,$HOMELAB_IP\"]" >/dev/null
     fi
-fi
+  fi
 
-if sudo systemctl list-unit-files podman-restart.service >/dev/null 2>&1; then
+  if sudo systemctl list-unit-files podman-restart.service >/dev/null 2>&1; then
     sudo systemctl enable --now podman-restart.service >/dev/null 2>&1 || true
-fi
+  fi
 
-echo "Pi-hole rootful container started."
+  echo "Pi-hole rootful container started."
+}
+
+main "$@"

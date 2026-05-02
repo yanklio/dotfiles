@@ -1,4 +1,4 @@
 # Pi-hole runtime state, generated databases, TLS keys, leases, and backups.
-homelab/apps/pi-hole/etc-pihole/**
-homelab/apps/pi-hole/etc-dnsmasq.d/**
-homelab/.env
+.env
+apps/pi-hole/etc-pihole/**
+apps/pi-hole/etc-dnsmasq.d/**

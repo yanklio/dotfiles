@@ -2,6 +2,7 @@
 set -euo pipefail
 
 dotfiles_dir="${DOTFILES_DIR:-$HOME/Dotfiles}"
+chezmoi_source="$dotfiles_dir/chezmoi"
 homelab_dir="$dotfiles_dir/homelab"
 env_file="$homelab_dir/.env"
 
@@ -27,7 +28,7 @@ install_base_packages() {
 
   echo "Installing base packages..."
   sudo apt-get update
-  sudo apt-get install -y git curl stow
+  sudo apt-get install -y git curl
 
   if ! have chezmoi; then
     echo "Installing chezmoi..."
@@ -49,11 +50,48 @@ network_prefix() {
 }
 
 write_server_role() {
+  local config tmp
+
+  config="$HOME/.config/chezmoi/chezmoi.toml"
   mkdir -p "$HOME/.config/chezmoi"
-  cat > "$HOME/.config/chezmoi/chezmoi.toml" <<'EOF'
+
+  if [[ ! -f "$config" ]]; then
+    cat > "$config" <<'EOF'
 [data]
   machineRole = "server"
 EOF
+    return 0
+  fi
+
+  tmp="$(mktemp)"
+  awk '
+    /^\[data\][[:space:]]*$/ { in_data = 1; saw_data = 1; print; next }
+    /^\[/ {
+      if (in_data && !wrote_role) {
+        print "  machineRole = \"server\""
+        wrote_role = 1
+      }
+      in_data = 0
+    }
+    in_data && /^[[:space:]]*machineRole[[:space:]]*=/ {
+      if (!wrote_role) {
+        print "  machineRole = \"server\""
+        wrote_role = 1
+      }
+      next
+    }
+    { print }
+    END {
+      if (!saw_data) {
+        print ""
+        print "[data]"
+        print "  machineRole = \"server\""
+      } else if (in_data && !wrote_role) {
+        print "  machineRole = \"server\""
+      }
+    }
+  ' "$config" > "$tmp"
+  mv "$tmp" "$config"
 }
 
 ensure_homelab_env() {
@@ -97,15 +135,14 @@ main() {
   }
 
   install_base_packages
-  bash "$dotfiles_dir/scripts/stow-chezmoi.sh"
   write_server_role
 
-  chezmoi init --source="$HOME/.local/share/chezmoi"
+  chezmoi init --source="$chezmoi_source"
   chezmoi apply
 
   ensure_homelab_env
   bash "$homelab_dir/scripts/start-all.sh"
-  "$HOME/.local/share/chezmoi/scripts/bootstrap.sh" nginx
+  "$chezmoi_source/scripts/bootstrap.sh" nginx
 
   echo "Homelab server install complete."
   echo "Verify: nslookup glance.home $(grep '^HOMELAB_IP=' "$env_file" | cut -d= -f2-)"

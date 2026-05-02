@@ -1,0 +1,12 @@
+# Local agent tooling, not managed dotfiles.
+.opencode/
+
+# Repository-only files.
+README.md
+AGENTS.md
+docs/
+scripts/
+.gitignore
+
+# Secrets
+.zsh_secrets

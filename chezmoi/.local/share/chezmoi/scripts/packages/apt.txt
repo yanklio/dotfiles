@@ -1,9 +1,0 @@
-# npm is separate package in apt
-npm
-
-# Go is golang-go in apt
-golang-go
-
-# Fonts
-fonts-noto
-fonts-noto-color-emoji

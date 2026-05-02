@@ -22,11 +22,11 @@ Set the role on the homelab server in `~/.config/chezmoi/chezmoi.toml`:
 Then run the normal bootstrap, or force only nginx setup with:
 
 ```bash
-~/Dotfiles/chezmoi/.local/share/chezmoi/scripts/bootstrap.sh nginx
+~/Dotfiles/chezmoi/scripts/bootstrap.sh nginx
 ```
 
 The bootstrap step:
-1. Symlinks all `*.conf` from `homelab/services/nginx/conf.d/` → `/etc/nginx/conf.d/`
+1. Copies all `*.conf` from `homelab/services/nginx/conf.d/` to `/etc/nginx/conf.d/`
 2. Disables default nginx sites
 3. Tests nginx config
 4. Enables and reloads nginx

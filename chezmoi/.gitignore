@@ -1,0 +1,8 @@
+# Secrets
+.zsh_secrets
+
+# Local agent tooling
+.opencode/
+
+# Chezmoitpl_backup
+.chezmoi*.tmp
