@@ -19,7 +19,7 @@ dotfiles_root() {
   local root
 
   root="$(cd "$script_dir/../../../../.." && pwd)"
-  [[ -d "$root/containers" ]] || return 1
+  [[ -d "$root/homelab" ]] || return 1
   printf '%s\n' "$root"
 }
 
@@ -176,7 +176,7 @@ configure_nginx_proxy() {
   local root conf dest nginx
   nginx="$(nginx_bin)" || return 0
   root="$(dotfiles_root)" || return 0
-  conf="$root/services/nginx/conf.d/home-lab.conf"
+  conf="$root/homelab/services/nginx/conf.d/home-lab.conf"
   dest="/etc/nginx/conf.d/home-lab.conf"
 
   [[ -r "$conf" ]] || return 0

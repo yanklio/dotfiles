@@ -1,42 +1,8 @@
-# Git
-git
-git-delta
-
-# Shell
-zsh
-zsh-autosuggestions
-zsh-syntax-highlighting
-
-# Editors and terminal tools
-vim
-neovim
-tmux
-fastfetch
-htop
-curl
-stow
-
-# Modern CLI replacements
-bat
-eza
-fzf
-ripgrep
-fd-find
-btop
-cava
-gh
-
-# Runtimes and build tools
-nodejs
+# npm is separate package in apt
 npm
-golang-go
-gcc
-python3
-podman
 
-# Desktop integration
-xdg-utils
-wl-clipboard
+# Go is golang-go in apt
+golang-go
 
 # Fonts
 fonts-noto
