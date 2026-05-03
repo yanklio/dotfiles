@@ -100,3 +100,10 @@ truthy() {
     *) return 2 ;;
   esac
 }
+
+valid_bool() {
+  case "${1:-}" in
+    1 | true | yes | on | 0 | false | no | off) return 0 ;;
+    *) return 1 ;;
+  esac
+}

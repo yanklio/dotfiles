@@ -75,6 +75,11 @@ validate_homelab_apps() {
 validate_homelab_env() {
   validate_homelab_apps
 
+  case "$(homelab_access_mode)" in
+    lan | tailscale-only) ;;
+    *) die "Invalid HOMELAB_ACCESS_MODE: $(homelab_access_mode)" ;;
+  esac
+
   if [[ -n "${PIHOLE_PASSWORD:-}" && "$PIHOLE_PASSWORD" == "change_me_to_a_strong_password" ]]; then
     die "PIHOLE_PASSWORD still uses the example value"
   fi
@@ -88,7 +93,13 @@ validate_homelab_env() {
   [[ -z "${HOMELAB_DNS_NAMES:-}" ]] || validate_csv_labels "$HOMELAB_DNS_NAMES"
 
   if [[ -n "${DHCP_ACTIVE:-}" ]]; then
-    truthy "$DHCP_ACTIVE" >/dev/null || die "Invalid DHCP_ACTIVE: $DHCP_ACTIVE"
+    valid_bool "$DHCP_ACTIVE" || die "Invalid DHCP_ACTIVE: $DHCP_ACTIVE"
+  fi
+
+  if tailscale_only_mode; then
+    [[ -n "${DHCP_ACTIVE:-}" ]] || die "DHCP_ACTIVE=false must be set when HOMELAB_ACCESS_MODE=tailscale-only"
+    truthy "$DHCP_ACTIVE" && die "DHCP_ACTIVE=false is required when HOMELAB_ACCESS_MODE=tailscale-only"
+    require_tailscale_access
   fi
 }
 

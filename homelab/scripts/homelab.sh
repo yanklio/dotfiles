@@ -8,6 +8,7 @@ apps_dir="$homelab_dir/apps"
 env_file="$homelab_dir/.env"
 
 source "$script_dir/lib/common.sh"
+source "$script_dir/lib/tailscale.sh"
 source "$script_dir/lib/env.sh"
 source "$script_dir/lib/apps.sh"
 source "$script_dir/lib/pihole.sh"
