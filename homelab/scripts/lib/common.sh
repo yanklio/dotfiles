@@ -48,6 +48,18 @@ as_root() {
   fi
 }
 
+as_root_quiet() {
+  if dry_run; then
+    run_cmd "$@"
+  elif [[ $EUID -eq 0 ]]; then
+    "$@" >/dev/null
+  elif have sudo; then
+    sudo "$@" >/dev/null
+  else
+    return 1
+  fi
+}
+
 require() {
   have "$1" || die "$1 is required"
 }
@@ -98,5 +110,12 @@ truthy() {
     1 | true | yes | on) return 0 ;;
     0 | false | no | off | '') return 1 ;;
     *) return 2 ;;
+  esac
+}
+
+valid_bool() {
+  case "${1:-}" in
+    1 | true | yes | on | 0 | false | no | off) return 0 ;;
+    *) return 1 ;;
   esac
 }

@@ -8,9 +8,12 @@ apps_dir="$homelab_dir/apps"
 env_file="$homelab_dir/.env"
 
 source "$script_dir/lib/common.sh"
+source "$script_dir/lib/tailscale.sh"
 source "$script_dir/lib/env.sh"
 source "$script_dir/lib/apps.sh"
 source "$script_dir/lib/pihole.sh"
+source "$script_dir/lib/nginx.sh"
+source "$script_dir/lib/doctor.sh"
 
 usage() {
   cat <<EOF
@@ -35,9 +38,10 @@ EOF
 homelab_start() {
   load_homelab_env required
   validate_homelab_env
-  start_pihole
+  start_optional_pihole
   start_rootless_apps
   echo "All homelab containers started."
+  show_tailscale_access_urls
 }
 
 homelab_stop() {

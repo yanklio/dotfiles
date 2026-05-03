@@ -2,3 +2,6 @@
 .env
 apps/pi-hole/etc-pihole/**
 apps/pi-hole/etc-dnsmasq.d/**
+
+# Open WebUI runtime database, uploads, and generated state.
+apps/open-webui/data/**

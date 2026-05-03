@@ -17,7 +17,11 @@ compose_in_app() {
 
   local env_args=()
   [[ -f "$env_file" ]] && env_args=(--env-file "$env_file")
-  (cd "$app_dir" && run_cmd podman compose "${env_args[@]}" "$@")
+  if tailscale_only_mode; then
+    (cd "$app_dir" && HOMELAB_APP_BIND=127.0.0.1 run_cmd podman compose "${env_args[@]}" "$@")
+  else
+    (cd "$app_dir" && run_cmd podman compose "${env_args[@]}" "$@")
+  fi
 }
 
 start_rootless_apps() {
@@ -41,6 +45,8 @@ stop_rootless_apps() {
 }
 
 show_homelab_status() {
+  load_homelab_env optional
+
   echo "Rootless containers:"
   if have podman; then
     run_cmd podman ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
@@ -55,39 +61,7 @@ show_homelab_status() {
   else
     echo "sudo or podman is not installed"
   fi
-}
 
-doctor() {
-  local failed=0 app
-
-  echo "Checking homelab prerequisites..."
-  have podman || { warn "podman is not installed"; failed=1; }
-  if have podman; then
-    podman compose version >/dev/null 2>&1 || { warn "podman compose is not available"; failed=1; }
-  fi
-  have sudo || [[ $EUID -eq 0 ]] || { warn "sudo is required for rootful Pi-hole"; failed=1; }
-
-  if [[ -f "$env_file" ]]; then
-    load_homelab_env optional
-    validate_homelab_env || failed=1
-    if [[ -z "${PIHOLE_PASSWORD:-}" ]]; then
-      warn "PIHOLE_PASSWORD is not set"
-      failed=1
-    fi
-  else
-    warn "$env_file is missing"
-    failed=1
-  fi
-
-  while IFS= read -r app; do
-    [[ -f "$apps_dir/$app/docker-compose.yml" ]] || { warn "Missing compose file for $app"; failed=1; }
-  done < <(homelab_apps)
-
-  if [[ $failed -eq 0 ]]; then
-    echo "Homelab doctor passed."
-  else
-    echo "Homelab doctor found issues." >&2
-  fi
-
-  return "$failed"
+  echo
+  show_tailscale_access_urls
 }
