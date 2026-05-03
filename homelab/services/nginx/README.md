@@ -4,7 +4,7 @@ This directory keeps host nginx config in the repo, split per service.
 
 ## Files
 
-- `00-default.conf` — default server (404)
+- `00-default.conf` — default server that routes `/` to Glance
 - `glance.localhost.conf` — Glance dashboard
 - `pihole.localhost.conf` — Pi-hole admin UI
 
@@ -19,20 +19,21 @@ Set the role on the homelab server in `~/.config/chezmoi/chezmoi.toml`:
   machineRole = "server"
 ```
 
-Then run the normal bootstrap, or force only nginx setup with:
+Then run the normal bootstrap, or force only nginx setup with the homelab dispatcher:
 
 ```bash
-~/Dotfiles/chezmoi/scripts/bootstrap.sh nginx
+~/Dotfiles/homelab/scripts/homelab.sh nginx
 ```
 
 The bootstrap step:
-1. Copies all `*.conf` from `homelab/services/nginx/conf.d/` to `/etc/nginx/conf.d/`
+1. Renders all `*.conf` from `homelab/services/nginx/conf.d/` to `/etc/nginx/conf.d/`
 2. Disables default nginx sites
 3. Tests nginx config
 4. Enables and reloads nginx
 
 ## Route layout
 
+- `http://<server>/` → `127.0.0.1:8080`
 - `http://glance.localhost/` and `http://glance.home/` → `127.0.0.1:8080`
 - `http://pihole.localhost/` and `http://pihole.home/` → `/admin/` → `127.0.0.1:8081`
 
@@ -41,3 +42,9 @@ Add more per-service `*.localhost.conf` files for other containers bound on loca
 ## Name resolution
 
 `*.localhost` names work locally without extra DNS records. `*.home` names are for LAN clients and should be added as Pi-hole Local DNS records pointing at the homelab server IP.
+
+## Tailscale-Only Mode
+
+With `HOMELAB_ACCESS_MODE=tailscale-only`, nginx configs are rendered with `listen <tailscale-ip>:80;` instead of `listen 80;`. Normal app containers bind to localhost, so LAN clients cannot bypass nginx by connecting directly to app ports.
+
+All client devices must be joined to the same tailnet. Use `http://<tailscale-ip>/`, or `http://<machine-name>/` when Tailscale MagicDNS is enabled.

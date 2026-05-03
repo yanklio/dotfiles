@@ -12,6 +12,8 @@ Local homelab services live here. Keep this separate from chezmoi-managed dotfil
 
 - `apps/pi-hole/` runs rootful because DNS/DHCP need privileged host networking (`53/udp`, `53/tcp`, `67/udp`).
 - Other apps run rootless with regular `podman compose`.
+- `HOMELAB_ACCESS_MODE=lan` is the default and keeps the existing LAN-oriented behavior.
+- `HOMELAB_ACCESS_MODE=tailscale-only` exposes apps only through the server's Tailscale address.
 
 Fresh server install after cloning this repo:
 
@@ -49,6 +51,31 @@ Pi-hole requires `homelab/.env` with `PIHOLE_PASSWORD` set. Keep that file priva
 Set `HOMELAB_IP`, `HOMELAB_DOMAIN`, and `HOMELAB_DNS_NAMES` there to make Local DNS records transferable between machines.
 
 Set `HOMELAB_APPS` to control rootless app startup order. It defaults to `glance`.
+
+## Tailscale-Only Access
+
+Use this mode when the homelab should not depend on router port forwarding, LAN nginx exposure, or Pi-hole DHCP.
+
+Set these values in `homelab/.env`:
+
+```bash
+HOMELAB_ACCESS_MODE=tailscale-only
+DHCP_ACTIVE=false
+HOMELAB_APPS=glance
+```
+
+In this mode, `homelab.sh start` requires the `tailscale` command, verifies `tailscale status`, detects the server IPv4 with `tailscale ip -4`, and fails clearly if no Tailscale IP is available.
+
+Pi-hole is skipped by the normal start path, and rootless app containers bind to localhost only. The nginx command renders reverse-proxy configs so nginx listens on `<tailscale-ip>:80` instead of all LAN interfaces.
+
+Every client device that should reach the homelab must be joined to the same tailnet. Access examples:
+
+```text
+http://<tailscale-ip>/
+http://<machine-name>/
+```
+
+The machine-name form requires Tailscale MagicDNS.
 
 Run a dry-run preview without starting/stopping containers:
 
