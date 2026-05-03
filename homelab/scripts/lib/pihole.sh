@@ -82,12 +82,53 @@ stop_pihole() {
 }
 
 configure_homelab_nginx() {
-  local bootstrap="$dotfiles_dir/chezmoi/scripts/bootstrap.sh"
-  [[ -x "$bootstrap" ]] || die "Missing executable bootstrap script: $bootstrap"
+  local config_dir="$homelab_dir/services/nginx/conf.d" listen
+  [[ -d "$config_dir" ]] || die "Missing nginx config directory: $config_dir"
+
+  load_homelab_env optional
+  validate_homelab_env
+
+  if tailscale_only_mode; then
+    listen="$(tailscale_ipv4):80"
+  else
+    listen="80"
+  fi
 
   if dry_run; then
-    DOTFILES_DRY_RUN=1 run_cmd "$bootstrap" nginx
+    run_cmd install -m 0644 "$config_dir"/*.conf /etc/nginx/conf.d/
   else
-    "$bootstrap" nginx
+    as_root bash -c '
+      set -euo pipefail
+      config_dir="$1"
+      listen="$2"
+      mkdir -p /etc/nginx/conf.d
+
+      if [[ -L /etc/nginx/sites-enabled/default ]]; then
+        rm /etc/nginx/sites-enabled/default
+      elif [[ -e /etc/nginx/sites-enabled/default ]]; then
+        mv -n /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default.disabled
+      fi
+
+      for site in /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/welcome.conf; do
+        [[ -e "$site" ]] || continue
+        mv -n "$site" "$site.disabled"
+      done
+
+      rm -f /etc/nginx/conf.d/home-lab.conf /etc/nginx/conf.d/dotfiles-*.conf
+      for conf in "$config_dir"/*.conf; do
+        [[ -e "$conf" ]] || continue
+        target="/etc/nginx/conf.d/dotfiles-$(basename "$conf")"
+        while IFS= read -r line || [[ -n "$line" ]]; do
+          printf '%s\n' "${line/listen 80;/listen $listen;}"
+        done < "$conf" > "$target"
+        chmod 0644 "$target"
+      done
+    ' bash "$config_dir" "$listen" || die "Failed to configure nginx reverse proxy"
+
+    as_root nginx -t
+    as_root systemctl enable --now nginx
+    as_root systemctl reload nginx
   fi
+
+  echo "Nginx reverse proxy listening on $listen."
 }

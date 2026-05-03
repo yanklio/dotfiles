@@ -17,7 +17,11 @@ compose_in_app() {
 
   local env_args=()
   [[ -f "$env_file" ]] && env_args=(--env-file "$env_file")
-  (cd "$app_dir" && run_cmd podman compose "${env_args[@]}" "$@")
+  if tailscale_only_mode; then
+    (cd "$app_dir" && HOMELAB_APP_BIND=127.0.0.1 run_cmd podman compose "${env_args[@]}" "$@")
+  else
+    (cd "$app_dir" && run_cmd podman compose "${env_args[@]}" "$@")
+  fi
 }
 
 start_rootless_apps() {

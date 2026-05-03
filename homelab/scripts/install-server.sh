@@ -147,7 +147,7 @@ main() {
 
   ensure_homelab_env
   "$homelab_dir/scripts/homelab.sh" start
-  "$chezmoi_source/scripts/bootstrap.sh" nginx
+  "$homelab_dir/scripts/homelab.sh" nginx
 
   echo "Homelab server install complete."
   echo "Verify: nslookup glance.home $(grep '^HOMELAB_IP=' "$env_file" | cut -d= -f2-)"
