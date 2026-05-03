@@ -1,0 +1,12 @@
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    network_mode: host
+    environment:
+      HOST: 127.0.0.1
+      PORT: 3000
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://127.0.0.1:11434}
+      WEBUI_NAME: Homelab Chat
+    volumes:
+      - ./data:/app/backend/data:z
+    restart: unless-stopped

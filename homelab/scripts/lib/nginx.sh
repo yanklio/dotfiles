@@ -27,7 +27,14 @@ configure_homelab_nginx() {
     [[ -e "$conf" ]] || continue
     rendered="$tmp_dir/dotfiles-$(basename "$conf")"
     while IFS= read -r line || [[ -n "$line" ]]; do
-      printf '%s\n' "${line/listen 80;/listen $listen;}"
+      case "$line" in
+        *'listen 80 default_server;'*)
+          printf '%s\n' "${line/listen 80 default_server;/listen $listen default_server;}"
+          ;;
+        *)
+          printf '%s\n' "${line/listen 80;/listen $listen;}"
+          ;;
+      esac
     done < "$conf" > "$rendered"
   done
 

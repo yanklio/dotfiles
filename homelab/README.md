@@ -50,7 +50,7 @@ Pi-hole requires `homelab/.env` with `PIHOLE_PASSWORD` set. Keep that file priva
 
 Set `HOMELAB_IP`, `HOMELAB_DOMAIN`, and `HOMELAB_DNS_NAMES` there to make Local DNS records transferable between machines.
 
-Set `HOMELAB_APPS` to control rootless app startup order. It defaults to `glance`.
+Set `HOMELAB_APPS` to control rootless app startup order. It defaults to `glance`; this repo also includes `open-webui` for `chat.gmk-de`.
 
 ## Tailscale-Only Access
 
@@ -61,7 +61,7 @@ Set these values in `homelab/.env`:
 ```bash
 HOMELAB_ACCESS_MODE=tailscale-only
 DHCP_ACTIVE=false
-HOMELAB_APPS=glance
+HOMELAB_APPS=glance,open-webui
 ```
 
 In this mode, `homelab.sh start` requires the `tailscale` command, verifies `tailscale status`, detects the server IPv4 with `tailscale ip -4`, and fails clearly if no Tailscale IP is available.
@@ -71,11 +71,11 @@ Pi-hole is skipped by the normal start path, and rootless app containers bind to
 Every client device that should reach the homelab must be joined to the same tailnet. Access examples:
 
 ```text
-http://<tailscale-ip>/
-http://<machine-name>/
+http://glance.<machine-name>/
+http://chat.<machine-name>/
 ```
 
-The machine-name form requires Tailscale MagicDNS.
+These app names require Tailnet DNS records as described below.
 
 ### Tailnet DNS Records
 
@@ -84,13 +84,14 @@ Tailscale MagicDNS resolves machine names such as `gmk-de`, but it does not crea
 ```bash
 HOMELAB_ENABLE_PIHOLE_DNS=true
 HOMELAB_TAILNET_DNS_SUFFIX=gmk-de
-HOMELAB_TAILNET_DNS_NAMES=glance
+HOMELAB_TAILNET_DNS_NAMES=glance,chat
 ```
 
 With `HOMELAB_ACCESS_MODE=tailscale-only`, this keeps `DHCP_ACTIVE=false`, starts Pi-hole only when `HOMELAB_ENABLE_PIHOLE_DNS=true`, and writes Local DNS records against the detected Tailscale IPv4. For example, on this host it generates:
 
 ```text
 100.127.87.82 glance.gmk-de
+100.127.87.82 chat.gmk-de
 ```
 
 Then configure the tailnet to use this DNS server:
@@ -105,6 +106,13 @@ After that, clients on the tailnet can use:
 
 ```text
 http://glance.gmk-de/
+http://chat.gmk-de/
+```
+
+`open-webui` uses host networking and connects to the host Ollama service at `http://127.0.0.1:11434`. It shows the models returned by `ollama list`. Pull or install models on the host before using them in chat:
+
+```bash
+ollama pull gemma4
 ```
 
 Run a dry-run preview without starting/stopping containers:
