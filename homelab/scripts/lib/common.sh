@@ -48,6 +48,18 @@ as_root() {
   fi
 }
 
+as_root_quiet() {
+  if dry_run; then
+    run_cmd "$@"
+  elif [[ $EUID -eq 0 ]]; then
+    "$@" >/dev/null
+  elif have sudo; then
+    sudo "$@" >/dev/null
+  else
+    return 1
+  fi
+}
+
 require() {
   have "$1" || die "$1 is required"
 }

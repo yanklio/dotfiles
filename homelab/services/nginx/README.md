@@ -34,7 +34,7 @@ The bootstrap step:
 ## Route layout
 
 - `http://<server>/` → `127.0.0.1:8080`
-- `http://glance.localhost/` and `http://glance.home/` → `127.0.0.1:8080`
+- `http://glance.localhost/`, `http://glance.home/`, and `http://glance.gmk-de/` → `127.0.0.1:8080`
 - `http://pihole.localhost/` and `http://pihole.home/` → `/admin/` → `127.0.0.1:8081`
 
 Add more per-service `*.localhost.conf` files for other containers bound on localhost high ports.
@@ -47,4 +47,4 @@ Add more per-service `*.localhost.conf` files for other containers bound on loca
 
 With `HOMELAB_ACCESS_MODE=tailscale-only`, nginx configs are rendered with `listen <tailscale-ip>:80;` instead of `listen 80;`. Normal app containers bind to localhost, so LAN clients cannot bypass nginx by connecting directly to app ports.
 
-All client devices must be joined to the same tailnet. Use `http://<tailscale-ip>/`, or `http://<machine-name>/` when Tailscale MagicDNS is enabled.
+All client devices must be joined to the same tailnet. Use `http://<tailscale-ip>/`, `http://<machine-name>/`, or `http://glance.gmk-de/` when Tailnet DNS is configured to resolve that app name.

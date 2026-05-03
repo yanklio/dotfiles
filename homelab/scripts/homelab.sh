@@ -12,6 +12,8 @@ source "$script_dir/lib/tailscale.sh"
 source "$script_dir/lib/env.sh"
 source "$script_dir/lib/apps.sh"
 source "$script_dir/lib/pihole.sh"
+source "$script_dir/lib/nginx.sh"
+source "$script_dir/lib/doctor.sh"
 
 usage() {
   cat <<EOF
@@ -36,11 +38,7 @@ EOF
 homelab_start() {
   load_homelab_env required
   validate_homelab_env
-  if tailscale_only_mode; then
-    echo "Skipping Pi-hole in tailscale-only mode."
-  else
-    start_pihole
-  fi
+  start_optional_pihole
   start_rootless_apps
   echo "All homelab containers started."
   show_tailscale_access_urls

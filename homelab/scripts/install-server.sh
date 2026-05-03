@@ -15,10 +15,10 @@ require_sudo() {
     return 0
   fi
 
-  have sudo || {
+  if ! have sudo; then
     echo "sudo is required" >&2
     exit 1
-  }
+  fi
 }
 
 install_base_packages() {
@@ -63,34 +63,32 @@ EOF
     return 0
   fi
 
+  if grep -q '^[[:space:]]*machineRole[[:space:]]*=' "$config"; then
+    tmp="$(mktemp)"
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      case "$line" in
+        *machineRole*) printf '  machineRole = "server"\n' ;;
+        *) printf '%s\n' "$line" ;;
+      esac
+    done < "$config" > "$tmp"
+    mv "$tmp" "$config"
+    return 0
+  fi
+
+  if ! grep -q '^\[data\]' "$config"; then
+    cat >> "$config" <<'EOF'
+
+[data]
+  machineRole = "server"
+EOF
+    return 0
+  fi
+
   tmp="$(mktemp)"
-  awk '
-    /^\[data\][[:space:]]*$/ { in_data = 1; saw_data = 1; print; next }
-    /^\[/ {
-      if (in_data && !wrote_role) {
-        print "  machineRole = \"server\""
-        wrote_role = 1
-      }
-      in_data = 0
-    }
-    in_data && /^[[:space:]]*machineRole[[:space:]]*=/ {
-      if (!wrote_role) {
-        print "  machineRole = \"server\""
-        wrote_role = 1
-      }
-      next
-    }
-    { print }
-    END {
-      if (!saw_data) {
-        print ""
-        print "[data]"
-        print "  machineRole = \"server\""
-      } else if (in_data && !wrote_role) {
-        print "  machineRole = \"server\""
-      }
-    }
-  ' "$config" > "$tmp"
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    printf '%s\n' "$line"
+    [[ "$line" == "[data]" ]] && printf '  machineRole = "server"\n'
+  done < "$config" > "$tmp"
   mv "$tmp" "$config"
 }
 
@@ -134,10 +132,10 @@ ensure_homelab_env() {
 main() {
   require_sudo
 
-  [[ -d "$dotfiles_dir" ]] || {
+  if [[ ! -d "$dotfiles_dir" ]]; then
     echo "Dotfiles repo not found: $dotfiles_dir" >&2
     exit 1
-  }
+  fi
 
   install_base_packages
   write_server_role

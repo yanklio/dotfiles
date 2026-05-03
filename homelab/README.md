@@ -77,6 +77,36 @@ http://<machine-name>/
 
 The machine-name form requires Tailscale MagicDNS.
 
+### Tailnet DNS Records
+
+Tailscale MagicDNS resolves machine names such as `gmk-de`, but it does not create app subdomains such as `glance.gmk-de`. To serve those names through the tailnet, explicitly enable Pi-hole for DNS only:
+
+```bash
+HOMELAB_ENABLE_PIHOLE_DNS=true
+HOMELAB_TAILNET_DNS_SUFFIX=gmk-de
+HOMELAB_TAILNET_DNS_NAMES=glance
+```
+
+With `HOMELAB_ACCESS_MODE=tailscale-only`, this keeps `DHCP_ACTIVE=false`, starts Pi-hole only when `HOMELAB_ENABLE_PIHOLE_DNS=true`, and writes Local DNS records against the detected Tailscale IPv4. For example, on this host it generates:
+
+```text
+100.127.87.82 glance.gmk-de
+```
+
+Then configure the tailnet to use this DNS server:
+
+1. Open the Tailscale admin console.
+2. Go to `DNS`.
+3. Add `100.127.87.82` under `Nameservers`.
+4. Enable `Override local DNS` if tailnet clients should use it automatically.
+5. Keep MagicDNS enabled.
+
+After that, clients on the tailnet can use:
+
+```text
+http://glance.gmk-de/
+```
+
 Run a dry-run preview without starting/stopping containers:
 
 ```bash
