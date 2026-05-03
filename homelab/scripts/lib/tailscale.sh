@@ -24,3 +24,16 @@ require_tailscale_access() {
   ip="$(tailscale_ipv4)"
   [[ -n "$ip" ]] || die "No Tailscale IPv4 address found; check 'tailscale status' and 'tailscale ip -4'."
 }
+
+show_tailscale_access_urls() {
+  local ip host
+  tailscale_only_mode || return 0
+
+  ip="$(tailscale_ipv4)"
+  [[ -n "$ip" ]] || return 0
+  host="$(hostname -s 2>/dev/null || hostname 2>/dev/null || true)"
+
+  echo "Tailscale access:"
+  echo "  http://$ip/"
+  [[ -n "$host" ]] && echo "  http://$host/ (with Tailscale MagicDNS)"
+}

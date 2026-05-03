@@ -36,9 +36,14 @@ EOF
 homelab_start() {
   load_homelab_env required
   validate_homelab_env
-  start_pihole
+  if tailscale_only_mode; then
+    echo "Skipping Pi-hole in tailscale-only mode."
+  else
+    start_pihole
+  fi
   start_rootless_apps
   echo "All homelab containers started."
+  show_tailscale_access_urls
 }
 
 homelab_stop() {

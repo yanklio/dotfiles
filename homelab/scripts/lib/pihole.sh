@@ -43,7 +43,9 @@ start_pihole() {
       as_root podman exec pihole pihole-FTL --config dns.hosts "$(json_dns_hosts)" >/dev/null
     fi
 
-    if truthy "${DHCP_ACTIVE:-true}"; then
+    if tailscale_only_mode; then
+      echo "Skipping Pi-hole DHCP configuration in tailscale-only mode."
+    elif truthy "${DHCP_ACTIVE:-true}"; then
       echo "Configuring Pi-hole DHCP DNS option..."
       if dry_run; then
         as_root podman exec pihole pihole-FTL --config misc.dnsmasq_lines "[\"dhcp-option=option:dns-server,$HOMELAB_IP\"]"
